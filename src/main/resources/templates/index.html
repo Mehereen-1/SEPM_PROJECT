@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>BookSwap – Exchange Books</title>
+
+<style>
+    body{
+        margin:0;
+        font-family: Arial, Helvetica, sans-serif;
+        background:#f5f6fa;
+    }
+
+    header{
+        background:#4a6fa5;
+        color:white;
+        padding:20px 40px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    }
+
+    header h1{
+        margin:0;
+    }
+
+    nav a{
+        color:white;
+        margin-left:20px;
+        text-decoration:none;
+        font-weight:bold;
+    }
+
+    .hero{
+        text-align:center;
+        padding:80px 20px;
+        background:white;
+    }
+
+    .hero h2{
+        font-size:40px;
+        margin-bottom:10px;
+    }
+
+    .hero p{
+        color:#555;
+        font-size:18px;
+    }
+
+    .hero button{
+        margin-top:20px;
+        padding:12px 25px;
+        border:none;
+        background:#4a6fa5;
+        color:white;
+        font-size:16px;
+        border-radius:6px;
+        cursor:pointer;
+    }
+
+    .section{
+        padding:60px 40px;
+        text-align:center;
+    }
+
+    .features{
+        display:flex;
+        justify-content:center;
+        gap:30px;
+        flex-wrap:wrap;
+        margin-top:40px;
+    }
+
+    .card{
+        background:white;
+        width:250px;
+        padding:25px;
+        border-radius:10px;
+        box-shadow:0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    .card h3{
+        margin-top:0;
+    }
+
+    footer{
+        background:#222;
+        color:#bbb;
+        text-align:center;
+        padding:20px;
+    }
+</style>
+
+</head>
+
+<body>
+
+<header>
+    <h1>📚 BookSwap</h1>
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">Browse Books</a>
+        <a href="#">My Books</a>
+        <a href="#">Login</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h2>Exchange Books With Friends</h2>
+    <p>Share the books you love and discover new ones from other readers.</p>
+    <button>Start Exchanging</button>
+</section>
+
+<section class="section">
+    <h2>How It Works</h2>
+
+<div class="features">
+
+    <div class="card">
+        <h3>📖 List Your Books</h3>
+        <p>Add books you want to exchange with other readers.</p>
+    </div>
+
+    <div class="card">
+        <h3>🔍 Discover Books</h3>
+        <p>Browse books that other users are offering.</p>
+    </div>
+
+    <div class="card">
+        <h3>🤝 Exchange</h3>
+        <p>Connect with users and schedule a book exchange.</p>
+    </div>
+
+</div>
+
+</section>
+
+<section class="section" style="background:white;">
+    <h2>Community Reads</h2>
+    <p>Join a growing community of book lovers sharing stories.</p>
+</section>
+
+<footer>
+    <p>© 2026 BookSwap – A community for readers</p>
+</footer>
+
+</body>
+</html>

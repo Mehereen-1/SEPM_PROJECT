@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: project
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  thymeleaf:
+    cache: false
+
+  server:
+    port: ${APP_PORT}
