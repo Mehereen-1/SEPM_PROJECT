@@ -1,0 +1,63 @@
+/* theme.scss: Professional color palette for SEPM_PROJECT */
+:root {
+  --rosy-taupe: #CFA7A7;
+  --rosy-granite: #8E8283;
+  --lavender: #ECEFFF;
+  --ghost-white: #EFF0F7;
+  --ghost-white-2: #F0F2FD;
+}
+
+body {
+  background: var(--ghost-white-2);
+  color: var(--rosy-granite);
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.card {
+  background: var(--lavender);
+  border-radius: 1rem;
+  box-shadow: 0 2px 16px rgba(142,130,131,0.08);
+  padding: 2rem;
+  margin: 1rem auto;
+  max-width: 400px;
+  border: 1px solid var(--ghost-white);
+}
+
+.btn-primary {
+  background: var(--rosy-taupe);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:hover {
+  background: var(--rosy-granite);
+}
+
+input, select {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 0.5rem 0 1rem 0;
+  border: 1px solid var(--ghost-white);
+  border-radius: 0.5rem;
+  background: var(--ghost-white-2);
+  color: var(--rosy-granite);
+}
+
+h1, h2, h3 {
+  color: var(--rosy-taupe);
+}
+
+.link {
+  color: var(--rosy-taupe);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .card { padding: 1rem; }
+  h1 { font-size: 1.5rem; }
+}

@@ -3,6 +3,7 @@ package com.example.project.service;
 import com.example.project.entity.Book;
 import com.example.project.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,6 +39,7 @@ public class BookService {
         return bookRepository.findByAuthorContainingIgnoreCase(author);
     }
     
+    @PreAuthorize("hasRole('USER')")
     public List<Book> getUserBooks(String owner) {
         return bookRepository.findByOwner(owner);
     }
