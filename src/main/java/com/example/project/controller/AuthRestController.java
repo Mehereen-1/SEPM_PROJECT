@@ -1,6 +1,5 @@
 package com.example.project.controller;
 
-import com.example.project.security.JwtUtil;
 import com.example.project.service.UserService;
 import com.example.project.entity.User;
 import com.example.project.repository.UserRepository;
@@ -22,8 +21,6 @@ public class AuthRestController {
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
-    private JwtUtil jwtUtil;
-    @Autowired
     private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -44,13 +41,12 @@ public class AuthRestController {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, password));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String token = jwtUtil.generateToken(email);
-        return ResponseEntity.ok(Map.of("token", token));
+        return ResponseEntity.ok(Map.of("message", "Login successful"));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         SecurityContextHolder.clearContext();
-        return ResponseEntity.ok("Logged out successfully");
+        return ResponseEntity.ok(Map.of("message", "Logout successful"));
     }
 }
