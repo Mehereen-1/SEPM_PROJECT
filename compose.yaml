@@ -20,9 +20,11 @@ services:
       DB_URL: jdbc:postgresql://db:5432/${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      APP_PORT: ${APP_PORT}
+      APP_PORT: 8080
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
     depends_on:
-      - db
+      db:
+        condition: service_started
 
 volumes:
   db_data:
