@@ -42,21 +42,23 @@
                 </header>
 
                 <div class="mt-10 flex items-center justify-center gap-2">
-                    <a th:href="@{/login}"
-                       th:classappend="${#httpServletRequest.requestURI == '/login'} ? 'bg-white shadow-sm' : 'bg-transparent'"
-                       class="px-5 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition">
-                        Sign In
-                    </a>
-                    <a th:href="@{/register}"
-                       th:classappend="${#httpServletRequest.requestURI == '/register'} ? 'bg-white shadow-sm' : 'bg-transparent'"
+                    <a th:href="@{/auth/{role}(role=${role})}" th:utext="'Sign Up'"
+                       th:classappend="${activeTab == 'signUp'} ? 'bg-white shadow-sm' : 'bg-transparent'"
                        class="px-5 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition">
                         Sign Up
+                    </a>
+                    <a th:href="@{/login(role=${role})}"
+                       th:classappend="${activeTab == 'signIn'} ? 'bg-white shadow-sm' : 'bg-transparent'"
+                       class="px-5 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition">
+                        Sign In
                     </a>
                 </div>
 
                 <div class="mt-8">
-                    <div th:if="${#httpServletRequest.requestURI == '/login'}" class="space-y-6">
+                    <div th:if="${activeTab == 'signIn'}" class="space-y-6">
                         <form th:action="@{/login}" method="post" class="space-y-6">
+                            <input type="hidden" name="role" th:value="${role}" />
+
                             <div class="grid gap-4">
                                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
                                     Email Address
@@ -86,17 +88,21 @@
 
                         <p class="text-center text-sm text-slate-500 dark:text-slate-300">
                             Don't have an account?
-                            <a th:href="@{/register}" class="font-semibold text-primary hover:text-primary/80">Sign Up</a>
+                            <a th:href="@{/auth/{role}(role=${role})}" class="font-semibold text-primary hover:text-primary/80">Sign Up</a>
                         </p>
                     </div>
 
-                    <div th:if="${#httpServletRequest.requestURI == '/register'}" class="space-y-6">
-                        <form th:action="@{/register}" method="post" class="space-y-6">
+                    <div th:if="${activeTab == 'signUp'}" class="space-y-6">
+                        <form th:action="@{/register}" method="post" class="space-y-6" id="authForm">
+                            <input type="hidden" name="role" th:value="${role}" />
+                            <input type="hidden" name="name" id="fullName" />
+
                             <div class="grid gap-4 md:grid-cols-2">
                                 <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
                                     First Name
                                     <input
                                         type="text"
+                                        id="firstName"
                                         name="firstName"
                                         class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
                                         placeholder="Jane" />
@@ -105,14 +111,15 @@
                                     Last Name
                                     <input
                                         type="text"
+                                        id="lastName"
                                         name="lastName"
                                         class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
                                         placeholder="Doe" />
                                 </label>
                             </div>
 
-                            <div class="grid gap-4 md:grid-cols-2">
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200 md:col-span-2">
+                            <div class="grid gap-4">
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
                                     Email Address
                                     <input
                                         type="email"
@@ -170,13 +177,24 @@
 
                         <p class="text-center text-sm text-slate-500 dark:text-slate-300">
                             Already have an account?
-                            <a th:href="@{/login}" class="font-semibold text-primary hover:text-primary/80">Sign In</a>
+                            <a th:href="@{/login(role=${role})}" class="font-semibold text-primary hover:text-primary/80">Sign In</a>
                         </p>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        const authForm = document.getElementById('authForm');
+        if (authForm) {
+            authForm.addEventListener('submit', () => {
+                const firstName = document.getElementById('firstName')?.value || '';
+                const lastName = document.getElementById('lastName')?.value || '';
+                const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
+                document.getElementById('fullName').value = fullName;
+            });
+        }
+    </script>
 </body>
 </html>
