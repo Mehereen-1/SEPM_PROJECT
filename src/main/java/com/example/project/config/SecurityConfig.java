@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.example.project.security.CustomLoginSuccessHandler;
 import com.example.project.security.CustomUserDetailsService;
 import com.example.project.security.JwtAuthenticationFilter;
 
@@ -26,6 +27,9 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    private CustomLoginSuccessHandler customLoginSuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -50,19 +54,20 @@ public class SecurityConfig {
                     "/error"
                 ).permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                .requestMatchers("/user/**").hasRole("USER")
-                .requestMatchers("/delivery/**").hasRole("DELIVERY")
+                // Role-based access for dashboards - support multiple role names for compatibility
+                .requestMatchers("/reader/**").hasAnyRole("BOOK_FRIEND", "USER", "READER")
+                .requestMatchers("/delivery/**").hasAnyRole("DELIVERY_PARTNER", "DELIVERY")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
                 .usernameParameter("email")
-                .defaultSuccessUrl("/", true)
+                .successHandler(customLoginSuccessHandler)
                 .permitAll()
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
+                .logoutSuccessUrl("/")
                 .permitAll()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

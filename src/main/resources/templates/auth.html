@@ -41,6 +41,18 @@
                     </p>
                 </header>
 
+                <!-- Error Message -->
+                <div th:if="${error}" class="mt-6 p-4 rounded-lg bg-red-50 border border-red-200">
+                    <p class="text-sm text-red-700 font-medium" th:text="${error}"></p>
+                </div>
+
+                <!-- Role Selection Info -->
+                <div th:if="${role}" class="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                    <p class="text-xs text-blue-700 font-medium">
+                        <span th:text="${role == 'DELIVERY_PARTNER' ? '📦 Signing up as Delivery Partner' : '📚 Signing up as Book Friend'}"></span>
+                    </p>
+                </div>
+
                 <div class="mt-10 flex items-center justify-center gap-2">
                     <a th:href="@{/auth/{role}(role=${role})}" th:utext="'Sign Up'"
                        th:classappend="${activeTab == 'signUp'} ? 'bg-white shadow-sm' : 'bg-transparent'"

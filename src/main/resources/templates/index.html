@@ -151,11 +151,11 @@
                     
                     <!-- CTA Buttons -->
                     <div class="flex flex-col sm:flex-row gap-4 pt-4">
-                        <a th:href="@{/auth/user}" class="btn-primary px-8 py-3 text-white rounded-lg font-semibold text-center transition hover:shadow-lg">
+                        <a th:href="@{/auth(role='BOOK_FRIEND')}" class="btn-primary px-8 py-3 text-white rounded-lg font-semibold text-center transition hover:shadow-lg">
                             <span class="material-icons inline mr-2" style="font-size: 20px;">person</span>
                             Continue as Book Friend
                         </a>
-                        <a th:href="@{/auth/delivery}" class="btn-secondary px-8 py-3 text-white rounded-lg font-semibold text-center transition hover:shadow-lg">
+                        <a th:href="@{/auth(role='DELIVERY_PARTNER')}" class="btn-secondary px-8 py-3 text-white rounded-lg font-semibold text-center transition hover:shadow-lg">
                             <span class="material-icons inline mr-2" style="font-size: 20px;">local_shipping</span>
                             Continue as Delivery Partner
                         </a>
