@@ -129,6 +129,8 @@
     <nav class="d-flex align-items-center">
         <a th:href="@{/}">Home</a>
         <a th:href="@{/browse}">Browse Books</a>
+        <a th:href="@{/offers-browse}">Browse Offers</a>
+        <a th:href="@{/offers-create}">Create Offer</a>
         <a th:href="@{/my-books}">My Books</a>
         <span sec:authorize="!isAuthenticated()">
             <a th:href="@{/login}" class="btn btn-outline-light ms-3">Login</a>
@@ -149,7 +151,7 @@
 <section class="hero">
     <h2>Exchange Books With Friends</h2>
     <p>Share the books you love and discover new ones from other readers.</p>
-    <button>Start Exchanging</button>
+    <a th:href="@{/offers-create}" style="display:inline-block; margin-top:20px; padding:12px 25px; border:none; background:#4a6fa5; color:white; font-size:16px; border-radius:6px; text-decoration:none;">Create Offer</a>
 </section>
 
 <section class="section">
