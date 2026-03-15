@@ -19,8 +19,10 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
+    @Transactional
+    public User registerUser(String email, String password) {
+        String defaultName = email != null ? email.split("@")[0] : "user";
+        return registerUser(defaultName, email, password);
     }
 
     @Transactional
