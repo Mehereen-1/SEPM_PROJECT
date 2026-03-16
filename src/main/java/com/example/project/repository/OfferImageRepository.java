@@ -9,4 +9,8 @@ import java.util.List;
 @Repository
 public interface OfferImageRepository extends JpaRepository<OfferImage, Long> {
 	List<OfferImage> findByOfferIdIn(List<Long> offerIds);
+
+	List<OfferImage> findByOffer_Id(Long offerId);
+
+	void deleteByOffer_Id(Long offerId);
 }

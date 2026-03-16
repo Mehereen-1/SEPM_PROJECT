@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:fragment="mainNavbar">
+    <style>
+        .app-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: linear-gradient(120deg, #23395b, #31527f);
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 8px 22px rgba(35, 57, 91, 0.28);
+        }
+
+        .app-navbar-inner {
+            max-width: 1220px;
+            margin: 0 auto;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .app-brand {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .app-navbar nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .app-nav-link {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 999px;
+            transition: background 0.2s ease, transform 0.2s ease;
+            font-size: 0.92rem;
+        }
+
+        .app-nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .app-nav-link.active {
+            background: rgba(255, 255, 255, 0.24);
+        }
+
+        .app-auth-chip {
+            font-size: 0.85rem;
+            padding: 0 4px;
+            color: rgba(255, 255, 255, 0.92);
+            white-space: nowrap;
+        }
+
+        .app-logout-btn {
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: transparent;
+            color: #ffffff;
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .app-mobile-toggle {
+            display: none;
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 900px) {
+            .app-mobile-toggle {
+                display: inline-block;
+            }
+
+            .app-navbar-inner {
+                flex-wrap: wrap;
+            }
+
+            .app-nav-wrap {
+                width: 100%;
+                display: none;
+                padding-top: 6px;
+            }
+
+            .app-navbar.open .app-nav-wrap {
+                display: block;
+            }
+
+            .app-nav-wrap nav {
+                width: 100%;
+                display: grid;
+                gap: 6px;
+            }
+
+            .app-nav-link,
+            .app-logout-btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .app-auth-chip {
+                width: 100%;
+                text-align: center;
+                padding: 4px 0;
+            }
+        }
+    </style>
+
+    <header class="app-navbar" id="appNavbarRoot">
+        <div class="app-navbar-inner">
+            <a th:href="@{/}" class="app-brand">📚 BookSwap</a>
+
+            <button type="button" class="app-mobile-toggle" id="appNavToggle">Menu</button>
+
+            <div class="app-nav-wrap" id="appNavWrap">
+                <nav>
+                    <a th:href="@{/}" class="app-nav-link">Home</a>
+                    <a th:href="@{/browse}" class="app-nav-link">Browse Books</a>
+                    <a th:href="@{/offers-browse}" class="app-nav-link">Browse Offers</a>
+                    <a th:href="@{/my-offers}" class="app-nav-link">My Offers</a>
+                    <a th:href="@{/exchange-center}" class="app-nav-link">Exchange Center</a>
+
+                    <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="app-nav-link">Login</a>
+                    <a sec:authorize="!isAuthenticated()" th:href="@{/register}" class="app-nav-link">Register</a>
+
+                    <span sec:authorize="isAuthenticated()" class="app-auth-chip">Signed in as <strong th:text="${#authentication.name}">user</strong></span>
+                    <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
+                        <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="app-logout-btn">Logout</button>
+                    </form>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <script>
+        (function () {
+            const root = document.getElementById('appNavbarRoot');
+            const toggle = document.getElementById('appNavToggle');
+            if (!root || !toggle) {
+                return;
+            }
+            toggle.addEventListener('click', function () {
+                root.classList.toggle('open');
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>

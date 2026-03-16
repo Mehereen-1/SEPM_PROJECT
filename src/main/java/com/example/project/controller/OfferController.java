@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -90,6 +92,142 @@ public class OfferController {
 
         return ResponseEntity.ok(response);
         }
+
+    @GetMapping("/my-active")
+    public ResponseEntity<?> getMyActiveOffers() {
+        String currentUsername = securityUtil.getCurrentUsername();
+        if (currentUsername == null || currentUsername.equals("anonymousUser")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "User is not authenticated."));
+        }
+
+        Optional<User> userOptional = userRepository.findByEmail(currentUsername);
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "Authenticated user not found."));
+        }
+
+        List<Offer> myActiveOffers = offerRepository.findByUserIdAndStatusWithDetails(userOptional.get().getId(), OfferStatus.ACTIVE);
+        List<MyOfferResponse> response = myActiveOffers.stream()
+            .map(offer -> new MyOfferResponse(
+                offer.getId(),
+                offer.getBook().getTitle(),
+                offer.getCondition(),
+                offer.getCreatedAt()
+            ))
+            .toList();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<?> getMyOffers() {
+        Optional<User> currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "User is not authenticated."));
+        }
+
+        List<Offer> myOffers = offerRepository.findByUserIdWithDetails(currentUser.get().getId());
+        if (myOffers.isEmpty()) {
+            return ResponseEntity.ok(List.of());
+        }
+
+        List<Long> offerIds = myOffers.stream().map(Offer::getId).toList();
+        List<OfferImage> allImages = offerImageRepository.findByOfferIdIn(offerIds);
+        Map<Long, List<String>> imageUrlsByOfferId = new HashMap<>();
+
+        for (OfferImage image : allImages) {
+            Long imageOfferId = image.getOffer().getId();
+            imageUrlsByOfferId.computeIfAbsent(imageOfferId, key -> new ArrayList<>())
+                .add(image.getImageUrl());
+        }
+
+        List<MyOfferDetailsResponse> response = myOffers.stream()
+            .map(offer -> new MyOfferDetailsResponse(
+                offer.getId(),
+                offer.getBook().getBookId(),
+                offer.getBook().getTitle(),
+                offer.getBook().getAuthor(),
+                offer.getCondition(),
+                offer.getNote(),
+                offer.getStatus().name(),
+                offer.getCreatedAt(),
+                imageUrlsByOfferId.getOrDefault(offer.getId(), List.of())
+            ))
+            .toList();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{offerId}")
+    public ResponseEntity<?> updateMyOffer(@PathVariable Long offerId, @RequestBody UpdateOfferRequest request) {
+        Optional<User> currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "User is not authenticated."));
+        }
+
+        Optional<Offer> offerResult = offerRepository.findById(offerId);
+        if (offerResult.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", "Offer not found."));
+        }
+
+        Offer offer = offerResult.get();
+        if (!offer.getUser().getId().equals(currentUser.get().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("message", "You can only modify your own offers."));
+        }
+
+        if (request.condition() == null || request.condition().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "condition is required."));
+        }
+
+        offer.setCondition(request.condition().trim());
+        offer.setNote(request.note() == null ? null : request.note().trim());
+        Offer updated = offerRepository.save(offer);
+
+        return ResponseEntity.ok(new OfferResponse(
+            updated.getId(),
+            updated.getBook().getBookId(),
+            updated.getUser().getId(),
+            updated.getCondition(),
+            updated.getNote(),
+            updated.getCreatedAt(),
+            updated.getStatus().name()
+        ));
+    }
+
+    @DeleteMapping("/{offerId}")
+    public ResponseEntity<?> deleteMyOffer(@PathVariable Long offerId) {
+        Optional<User> currentUser = getCurrentUser();
+        if (currentUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "User is not authenticated."));
+        }
+
+        Optional<Offer> offerResult = offerRepository.findById(offerId);
+        if (offerResult.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", "Offer not found."));
+        }
+
+        Offer offer = offerResult.get();
+        if (!offer.getUser().getId().equals(currentUser.get().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("message", "You can only delete your own offers."));
+        }
+
+        try {
+            offerImageRepository.deleteByOffer_Id(offerId);
+            offerRepository.delete(offer);
+            return ResponseEntity.ok(Map.of("message", "Offer deleted successfully."));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("message", "Offer cannot be deleted because it is referenced by active exchange data."));
+        }
+    }
 
     @PostMapping
     public ResponseEntity<?> createOffer(@RequestBody CreateOfferRequest request) {
@@ -218,12 +356,26 @@ public class OfferController {
         return filename.substring(lastDot);
     }
 
+    private Optional<User> getCurrentUser() {
+        String currentUsername = securityUtil.getCurrentUsername();
+        if (currentUsername == null || currentUsername.equals("anonymousUser")) {
+            return Optional.empty();
+        }
+        return userRepository.findByEmail(currentUsername);
+    }
+
     record CreateOfferRequest(
             String bookId,
             String condition,
             String note
     ) {
     }
+
+        record UpdateOfferRequest(
+            String condition,
+            String note
+        ) {
+        }
 
         record OfferBrowseResponse(
             Long offerId,
@@ -244,6 +396,27 @@ public class OfferController {
             String note,
             LocalDateTime createdAt,
             String status
+        ) {
+        }
+
+        record MyOfferResponse(
+            Long offerId,
+            String bookTitle,
+            String condition,
+            LocalDateTime createdAt
+        ) {
+        }
+
+        record MyOfferDetailsResponse(
+            Long offerId,
+            String bookId,
+            String bookTitle,
+            String author,
+            String condition,
+            String note,
+            String status,
+            LocalDateTime createdAt,
+            List<String> imageUrls
         ) {
         }
 }

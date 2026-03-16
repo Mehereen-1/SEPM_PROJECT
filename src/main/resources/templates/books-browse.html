@@ -207,6 +207,28 @@
             padding-top: 10px;
         }
 
+        .book-actions {
+            margin-top: 12px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+
+        .share-btn {
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 10px;
+            background: linear-gradient(120deg, #4a6fa5, #5f85bd);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .share-btn:hover {
+            filter: brightness(1.06);
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
@@ -313,6 +335,66 @@
             line-height: 1.6;
         }
 
+        .offer-field {
+            margin-bottom: 12px;
+        }
+
+        .offer-field label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #4a6fa5;
+        }
+
+        .offer-field select,
+        .offer-field textarea,
+        .offer-field input {
+            width: 100%;
+            border: 1px solid #d6deeb;
+            border-radius: 8px;
+            padding: 9px 10px;
+            font-size: 14px;
+        }
+
+        .offer-field textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .offer-status {
+            margin-top: 10px;
+            border-radius: 8px;
+            padding: 9px 10px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .offer-status.success {
+            display: block;
+            background: #eaf9f0;
+            border: 1px solid #bde4cc;
+            color: #1d6c3d;
+        }
+
+        .offer-status.error {
+            display: block;
+            background: #fff2f2;
+            border: 1px solid #efc6c6;
+            color: #893131;
+        }
+
+        .offer-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .btn-secondary {
+            background: #eef2f9;
+            color: #28405f;
+        }
+
         @media (max-width: 768px) {
             header {
                 flex-direction: column;
@@ -341,14 +423,7 @@
     </style>
 </head>
 <body>
-    <header>
-        <h1>📚 BookSwap</h1>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/books/browse">Browse Books</a>
-            <a href="/login">Login</a>
-        </nav>
-    </header>
+    <div th:replace="fragments/navbar :: mainNavbar"></div>
 
     <div class="container">
         <h2 class="page-title">Browse Our Book Catalog</h2>
@@ -386,12 +461,52 @@
         </div>
     </div>
 
+    <div id="shareOfferModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeShareOfferModal">&times;</span>
+            <h3 style="margin-top:0;">Share This Book</h3>
+            <p id="shareSelectedBookLabel" style="color:#5f7191; margin-top:0;"></p>
+
+            <form id="shareOfferForm" novalidate>
+                <div class="offer-field">
+                    <label for="offerCondition">Condition</label>
+                    <select id="offerCondition" required>
+                        <option value="">Select condition</option>
+                        <option value="New">New</option>
+                        <option value="Like New">Like New</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Worn">Worn</option>
+                    </select>
+                </div>
+
+                <div class="offer-field">
+                    <label for="offerNote">Note</label>
+                    <textarea id="offerNote" placeholder="Example: Minimal highlighting on chapter 2, no torn pages."></textarea>
+                </div>
+
+                <div class="offer-field">
+                    <label for="offerImages">Photos (optional)</label>
+                    <input id="offerImages" type="file" accept="image/*" multiple>
+                </div>
+
+                <div class="offer-actions">
+                    <button type="button" class="btn-secondary" id="cancelShareOfferBtn">Cancel</button>
+                    <button type="submit" id="submitShareOfferBtn">Create Offer</button>
+                </div>
+
+                <div id="offerStatus" class="offer-status"></div>
+            </form>
+        </div>
+    </div>
+
     <footer>
         <p>&copy; 2026 BookSwap – A community for bookworms</p>
     </footer>
 
     <script>
         let allBooks = [];
+        let selectedShareBook = null;
 
         // Load books when page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -464,10 +579,103 @@
                         <span>${book.language || 'Unknown'}</span>
                         <span>${book.pages || 'N/A'} pages</span>
                     </div>
+                    <div class="book-actions">
+                        <button class="share-btn" data-share-book-id="${escapeHtml(book.bookId)}">Share This Book</button>
+                    </div>
                 </div>
             `;
 
             return card;
+        }
+
+        function getAuthHeaders(includeJson = false) {
+            const headers = { Accept: 'application/json' };
+            if (includeJson) {
+                headers['Content-Type'] = 'application/json';
+            }
+
+            const token = localStorage.getItem('token');
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+            return headers;
+        }
+
+        function setOfferStatus(type, message) {
+            const box = document.getElementById('offerStatus');
+            box.className = `offer-status ${type}`;
+            box.textContent = message;
+        }
+
+        function clearOfferStatus() {
+            const box = document.getElementById('offerStatus');
+            box.className = 'offer-status';
+            box.textContent = '';
+        }
+
+        function openShareOfferModal(book) {
+            selectedShareBook = book;
+            document.getElementById('shareSelectedBookLabel').textContent = `${book.title} by ${book.author || 'Unknown author'}`;
+            document.getElementById('shareOfferForm').reset();
+            clearOfferStatus();
+            document.getElementById('shareOfferModal').style.display = 'block';
+        }
+
+        function closeShareOfferModal() {
+            document.getElementById('shareOfferModal').style.display = 'none';
+            selectedShareBook = null;
+        }
+
+        async function createOfferForBook(payload) {
+            const response = await fetch('/offers', {
+                method: 'POST',
+                headers: getAuthHeaders(true),
+                body: JSON.stringify(payload)
+            });
+
+            let data = null;
+            try {
+                data = await response.json();
+            } catch (_) {
+                data = null;
+            }
+
+            if (!response.ok) {
+                throw new Error((data && data.message) ? data.message : 'Failed to create offer.');
+            }
+
+            return data;
+        }
+
+        async function uploadOfferImages(offerId, files) {
+            if (!files || files.length === 0) {
+                return;
+            }
+
+            const formData = new FormData();
+            Array.from(files).forEach((file) => formData.append('files', file));
+
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+            const response = await fetch(`/offers/${offerId}/images`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+
+            if (!response.ok) {
+                let message = 'Offer created, but image upload failed.';
+                try {
+                    const payload = await response.json();
+                    if (payload && payload.message) {
+                        message = payload.message;
+                    }
+                } catch (_) {
+                    // keep default message
+                }
+                throw new Error(message);
+            }
         }
 
         function showBookDetails(book) {
@@ -560,6 +768,11 @@
             if (event.target === modal) {
                 modal.style.display = 'none';
             }
+
+            const shareModal = document.getElementById('shareOfferModal');
+            if (event.target === shareModal) {
+                closeShareOfferModal();
+            }
         }
 
         function searchBooks() {
@@ -597,6 +810,71 @@
             document.getElementById('searchInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     searchBooks();
+                }
+            });
+
+            document.getElementById('booksContainer').addEventListener('click', function(e) {
+                const shareBtn = e.target.closest('[data-share-book-id]');
+                if (!shareBtn) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const bookId = shareBtn.getAttribute('data-share-book-id');
+                const selected = allBooks.find((book) => String(book.bookId) === String(bookId));
+                if (selected) {
+                    openShareOfferModal(selected);
+                }
+            });
+
+            document.getElementById('closeShareOfferModal').addEventListener('click', closeShareOfferModal);
+            document.getElementById('cancelShareOfferBtn').addEventListener('click', closeShareOfferModal);
+
+            document.getElementById('shareOfferForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                clearOfferStatus();
+
+                if (!selectedShareBook) {
+                    setOfferStatus('error', 'No book selected to share.');
+                    return;
+                }
+
+                const condition = document.getElementById('offerCondition').value;
+                if (!condition) {
+                    setOfferStatus('error', 'Please select a condition.');
+                    return;
+                }
+
+                const submitBtn = document.getElementById('submitShareOfferBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+
+                try {
+                    const payload = {
+                        bookId: selectedShareBook.bookId,
+                        condition,
+                        note: document.getElementById('offerNote').value.trim()
+                    };
+
+                    const created = await createOfferForBook(payload);
+                    if (!created || !created.id) {
+                        throw new Error('Offer created but missing offer ID in response.');
+                    }
+
+                    const images = document.getElementById('offerImages').files;
+                    await uploadOfferImages(created.id, images);
+
+                    setOfferStatus('success', 'Offer created successfully. Redirecting to My Offers...');
+                    setTimeout(() => {
+                        window.location.href = '/my-offers';
+                    }, 800);
+                } catch (error) {
+                    setOfferStatus('error', error.message || 'Failed to create offer.');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Offer';
                 }
             });
         });

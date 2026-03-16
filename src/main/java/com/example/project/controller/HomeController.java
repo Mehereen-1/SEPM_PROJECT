@@ -24,4 +24,14 @@ public class HomeController {
     public String createOfferPage() {
         return "offers-create";
     }
+
+    @GetMapping("/my-offers")
+    public String myOffersPage() {
+        return "my-offers";
+    }
+
+    @GetMapping("/exchange-center")
+    public String exchangeCenterPage() {
+        return "exchange-center";
+    }
 }

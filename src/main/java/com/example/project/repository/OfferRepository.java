@@ -13,4 +13,10 @@ import java.util.List;
 public interface OfferRepository extends JpaRepository<Offer, Long> {
 	@Query("select o from Offer o join fetch o.book join fetch o.user where o.status = :status")
 	List<Offer> findByStatusWithDetails(@Param("status") OfferStatus status);
+
+	@Query("select o from Offer o join fetch o.book join fetch o.user where o.user.id = :userId and o.status = :status")
+	List<Offer> findByUserIdAndStatusWithDetails(@Param("userId") Long userId, @Param("status") OfferStatus status);
+
+	@Query("select o from Offer o join fetch o.book join fetch o.user where o.user.id = :userId order by o.createdAt desc")
+	List<Offer> findByUserIdWithDetails(@Param("userId") Long userId);
 }
