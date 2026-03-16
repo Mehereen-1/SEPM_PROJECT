@@ -1,10 +1,13 @@
 package com.example.project.controller;
 
+import com.example.project.entity.DeliveryOffer;
+import com.example.project.entity.DeliveryOfferStatus;
 import com.example.project.entity.ExchangeRequest;
 import com.example.project.entity.ExchangeRequestStatus;
 import com.example.project.entity.Offer;
 import com.example.project.entity.OfferStatus;
 import com.example.project.entity.User;
+import com.example.project.repository.DeliveryOfferRepository;
 import com.example.project.repository.ExchangeRequestRepository;
 import com.example.project.repository.OfferRepository;
 import com.example.project.repository.UserRepository;
@@ -37,6 +40,9 @@ public class ExchangeRequestController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private DeliveryOfferRepository deliveryOfferRepository;
 
     @Autowired
     private SecurityUtil securityUtil;
@@ -130,6 +136,7 @@ public class ExchangeRequestController {
         offerRepository.save(exchangeRequest.getRequesterOffer());
         offerRepository.save(exchangeRequest.getTargetOffer());
         ExchangeRequest updated = exchangeRequestRepository.save(exchangeRequest);
+        createDeliveryOfferIfMissing(updated);
 
         return ResponseEntity.ok(toResponse(updated));
     }
@@ -192,6 +199,23 @@ public class ExchangeRequestController {
             return Optional.empty();
         }
         return userRepository.findByEmail(currentUsername);
+    }
+
+    private void createDeliveryOfferIfMissing(ExchangeRequest exchangeRequest) {
+        if (exchangeRequest == null || exchangeRequest.getId() == null) {
+            return;
+        }
+
+        if (deliveryOfferRepository.existsByExchangeRequest_Id(exchangeRequest.getId())) {
+            return;
+        }
+
+        DeliveryOffer deliveryOffer = new DeliveryOffer();
+        deliveryOffer.setExchangeRequest(exchangeRequest);
+        deliveryOffer.setStatus(DeliveryOfferStatus.AVAILABLE);
+        deliveryOffer.setDeliveryFee(0.0d);
+        deliveryOffer.setCreatedAt(LocalDateTime.now());
+        deliveryOfferRepository.save(deliveryOffer);
     }
 
     private ExchangeRequestDetailsResponse toResponse(ExchangeRequest exchangeRequest) {

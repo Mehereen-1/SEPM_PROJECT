@@ -1,6 +1,7 @@
 package com.example.project.repository;
 
 import com.example.project.entity.ExchangeRequest;
+import com.example.project.entity.ExchangeRequestStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -53,4 +54,19 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
         where er.id = :id
         """)
     Optional<ExchangeRequest> findByIdWithDetails(@Param("id") Long id);
+
+    @Query("""
+        select er
+        from ExchangeRequest er
+        join fetch er.requesterOffer ro
+        join fetch ro.user ru
+        join fetch ro.book rb
+        join fetch er.targetOffer toff
+        join fetch toff.user tu
+        join fetch toff.book tb
+        left join DeliveryOffer d on d.exchangeRequest.id = er.id
+        where er.status = :status and d.id is null
+        order by er.createdAt asc
+        """)
+    List<ExchangeRequest> findByStatusWithoutDeliveryOfferWithDetails(@Param("status") ExchangeRequestStatus status);
 }

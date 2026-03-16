@@ -70,13 +70,35 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/")
                 .permitAll()
             )
+            .userDetailsService(customUserDetailsService)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
+
+        return new PasswordEncoder() {
+            @Override
+            public String encode(CharSequence rawPassword) {
+                return bcrypt.encode(rawPassword);
+            }
+
+            @Override
+            public boolean matches(CharSequence rawPassword, String storedPassword) {
+                if (storedPassword == null) {
+                    return false;
+                }
+
+                // Backward compatibility for legacy plaintext rows; all new writes use bcrypt.
+                if (!storedPassword.startsWith("$2a$") && !storedPassword.startsWith("$2b$") && !storedPassword.startsWith("$2y$")) {
+                    return rawPassword != null && storedPassword.equals(rawPassword.toString());
+                }
+
+                return bcrypt.matches(rawPassword, storedPassword);
+            }
+        };
     }
 
     @Bean
