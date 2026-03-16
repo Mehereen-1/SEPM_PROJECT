@@ -1,210 +1,248 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Join Binimoy — Authentication</title>
+    <title>Bibliophile - Authentication</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,0,0" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,500,0,0" rel="stylesheet" />
     <style>
         body {
             font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at top, rgba(244, 63, 106, 0.08), transparent 60%), #f7edf2;
         }
-        .bg-light {
-            background: radial-gradient(circle at top, rgba(244, 52, 100, 0.12), transparent 70%),
-                        linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+
+        .auth-shell {
+            border: 1px solid #eddce5;
+            border-radius: 22px;
+            background: #faf6f8;
+            box-shadow: 0 24px 44px rgba(36, 16, 27, 0.08);
         }
-        .border-primary {
-            border-color: rgba(244, 52, 100, 0.15);
+
+        .auth-input,
+        .auth-select {
+            width: 100%;
+            height: 46px;
+            margin-top: 8px;
+            border: 1px solid #e4d6de;
+            border-radius: 10px;
+            background: #fff;
+            padding: 0 12px;
+            font-size: 0.92rem;
+            color: #334155;
         }
-        .bg-primary {
-            background-color: #f43464;
+
+        .auth-input:focus,
+        .auth-select:focus {
+            outline: none;
+            border-color: #f43f6a;
+            box-shadow: 0 0 0 3px rgba(244, 63, 106, 0.14);
         }
-        .bg-primary:hover {
-            background-color: #e12f5a;
+
+        .primary-btn {
+            width: 100%;
+            border: 0;
+            border-radius: 999px;
+            padding: 12px 18px;
+            background: #f43f6a;
+            color: #fff;
+            font-weight: 700;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 12px 18px rgba(244, 63, 106, 0.25);
         }
-        .focus-ring-primary:focus {
-            outline: 2px solid rgba(244, 52, 100, 0.35);
-            outline-offset: 2px;
+
+        .primary-btn:hover {
+            background: #e73360;
+        }
+
+        .map-placeholder {
+            height: 118px;
+            border-radius: 16px;
+            border: 1px solid #e4d6de;
+            background:
+                linear-gradient(30deg, rgba(190, 220, 179, 0.8) 0 16%, transparent 16% 34%, rgba(190, 220, 179, 0.8) 34% 52%, transparent 52%),
+                linear-gradient(140deg, transparent 0 28%, rgba(251, 191, 128, 0.9) 28% 33%, transparent 33%),
+                #ebf3e7;
+            display: grid;
+            place-items: center;
+            color: #f06464;
+            font-size: 48px;
         }
     </style>
 </head>
-<body class="min-h-screen bg-light flex items-center justify-center px-4 py-10">
-    <div class="w-full max-w-3xl">
-        <div class="bg-white dark:bg-slate-900 rounded-xl border border-primary shadow-sm">
-            <div class="px-8 py-10 md:px-12">
-                <header class="text-center">
-                    <h1 class="text-3xl md:text-4xl font-semibold text-slate-900 dark:text-white">Join Binimoy</h1>
-                    <p class="mt-2 text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-                        Create an account or sign in to start exchanging books.
+<body class="min-h-screen">
+    <div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+    <div th:replace="~{fragments/breadcrumb :: breadcrumb(${activeTab == 'signIn' ? 'Sign In' : 'Sign Up'})}"></div>
+
+    <main class="px-4 pb-12">
+    <div class="max-w-5xl mx-auto">
+        <section class="auth-shell p-5 md:p-8">
+            <header class="text-center">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900">Welcome to Bibliophile</h1>
+                <p class="mt-2 text-slate-600">Create your account or sign in to continue your reading journey.</p>
+            </header>
+
+            <div th:if="${error}" class="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" th:text="${error}"></div>
+
+            <div th:if="${param.error}" class="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                Sign in failed. Please check your email and password.
+            </div>
+
+            <div th:if="${param.registered}" class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                Registration successful. Please sign in to continue.
+            </div>
+
+            <div th:if="${param.logout}" class="mt-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">
+                You have been logged out successfully.
+            </div>
+
+            <div th:if="${role}" class="mt-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                <span th:text="${role == 'DELIVERY_PARTNER' ? 'You are joining as Delivery Partner' : 'You are joining as Book Friend'}"></span>
+            </div>
+
+            <div class="mt-8">
+                <div th:if="${activeTab == 'signIn'}" class="max-w-md mx-auto">
+                    <form th:action="@{/login}" method="post" class="space-y-4">
+                        <input type="hidden" name="role" th:value="${role}" />
+                        <label class="block text-sm font-semibold text-slate-700">
+                            Email Address
+                            <input type="email" name="email" required class="auth-input" placeholder="you@example.com" />
+                        </label>
+                        <label class="block text-sm font-semibold text-slate-700">
+                            Password
+                            <input type="password" name="password" required class="auth-input" placeholder="Enter your password" />
+                        </label>
+                        <button type="submit" class="primary-btn mt-3">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">login</span>
+                            Sign In
+                        </button>
+                    </form>
+
+                    <p class="text-center text-sm text-slate-600 mt-4">
+                        Don't have an account?
+                        <a th:href="@{/register(role=${role})}" class="font-semibold text-rose-600 hover:text-rose-700">Sign Up</a>
                     </p>
-                </header>
-
-                <!-- Error Message -->
-                <div th:if="${error}" class="mt-6 p-4 rounded-lg bg-red-50 border border-red-200">
-                    <p class="text-sm text-red-700 font-medium" th:text="${error}"></p>
                 </div>
 
-                <!-- Role Selection Info -->
-                <div th:if="${role}" class="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
-                    <p class="text-xs text-blue-700 font-medium">
-                        <span th:text="${role == 'DELIVERY_PARTNER' ? '📦 Signing up as Delivery Partner' : '📚 Signing up as Book Friend'}"></span>
-                    </p>
-                </div>
+                <div th:if="${activeTab == 'signUp'}" class="max-w-4xl mx-auto">
+                    <form th:action="@{/register}" method="post" id="authForm" class="space-y-5">
+                        <input type="hidden" name="role" th:value="${role}" />
+                        <input type="hidden" id="fullName" name="name" />
 
-                <div class="mt-10 flex items-center justify-center gap-2">
-                    <a th:href="@{/auth/{role}(role=${role})}" th:utext="'Sign Up'"
-                       th:classappend="${activeTab == 'signUp'} ? 'bg-white shadow-sm' : 'bg-transparent'"
-                       class="px-5 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition">
-                        Sign Up
-                    </a>
-                    <a th:href="@{/login(role=${role})}"
-                       th:classappend="${activeTab == 'signIn'} ? 'bg-white shadow-sm' : 'bg-transparent'"
-                       class="px-5 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition">
-                        Sign In
-                    </a>
-                </div>
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <label class="block text-sm font-semibold text-slate-700">
+                                First Name
+                                <input id="firstName" name="firstName" class="auth-input" type="text" placeholder="Jane" required />
+                            </label>
+                            <label class="block text-sm font-semibold text-slate-700">
+                                Last Name
+                                <input id="lastName" name="lastName" class="auth-input" type="text" placeholder="Doe" required />
+                            </label>
+                        </div>
 
-                <div class="mt-8">
-                    <div th:if="${activeTab == 'signIn'}" class="space-y-6">
-                        <form th:action="@{/login}" method="post" class="space-y-6">
-                            <input type="hidden" name="role" th:value="${role}" />
+                        <label class="block text-sm font-semibold text-slate-700">
+                            Email Address
+                            <input name="email" class="auth-input" type="email" placeholder="jane.doe@example.com" required />
+                        </label>
 
-                            <div class="grid gap-4">
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Email Address
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        required
-                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
-                                        placeholder="you@example.com" />
-                                </label>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Password
-                                    <input
-                                        type="password"
-                                        name="password"
-                                        required
-                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
-                                        placeholder="Enter your password" />
-                                </label>
-                            </div>
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <label class="block text-sm font-semibold text-slate-700">
+                                Date of Birth
+                                <input name="dob" class="auth-input" type="date" />
+                            </label>
+                            <label class="block text-sm font-semibold text-slate-700">
+                                Gender
+                                <select name="gender" class="auth-select">
+                                    <option value="">Select gender</option>
+                                    <option>Female</option>
+                                    <option>Male</option>
+                                    <option>Other</option>
+                                </select>
+                            </label>
+                        </div>
 
-                            <button type="submit" class="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-white text-sm font-semibold shadow-lg transition hover:bg-primary/90">
-                                <span class="material-symbols-rounded text-base">login</span>
-                                Sign In
-                            </button>
-                        </form>
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <label class="block text-sm font-semibold text-slate-700">
+                                Contact No (1)
+                                <input name="contact" class="auth-input" type="tel" placeholder="+1 (555) 000-0000" />
+                            </label>
+                            <label class="block text-sm font-semibold text-slate-700">
+                                Contact No (2)
+                                <input name="contactAlternate" class="auth-input" type="tel" placeholder="+1 (555) 000-0000" />
+                            </label>
+                        </div>
 
-                        <p class="text-center text-sm text-slate-500 dark:text-slate-300">
-                            Don't have an account?
-                            <a th:href="@{/auth/{role}(role=${role})}" class="font-semibold text-primary hover:text-primary/80">Sign Up</a>
-                        </p>
-                    </div>
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <label class="block text-sm font-semibold text-slate-700">
+                                Latitude
+                                <input name="latitude" class="auth-input" type="text" placeholder="0.0000" />
+                            </label>
+                            <label class="block text-sm font-semibold text-slate-700">
+                                Longitude
+                                <input name="longitude" class="auth-input" type="text" placeholder="0.0000" />
+                            </label>
+                        </div>
 
-                    <div th:if="${activeTab == 'signUp'}" class="space-y-6">
-                        <form th:action="@{/register}" method="post" class="space-y-6" id="authForm">
-                            <input type="hidden" name="role" th:value="${role}" />
-                            <input type="hidden" name="name" id="fullName" />
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <label class="block text-sm font-semibold text-slate-700">
+                                Password
+                                <input id="password" name="password" class="auth-input" type="password" placeholder="Create a password" required />
+                            </label>
+                            <label class="block text-sm font-semibold text-slate-700">
+                                Confirm Password
+                                <input id="confirmPassword" name="confirmPassword" class="auth-input" type="password" placeholder="Confirm password" required />
+                            </label>
+                        </div>
 
-                            <div class="grid gap-4 md:grid-cols-2">
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    First Name
-                                    <input
-                                        type="text"
-                                        id="firstName"
-                                        name="firstName"
-                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
-                                        placeholder="Jane" />
-                                </label>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Last Name
-                                    <input
-                                        type="text"
-                                        id="lastName"
-                                        name="lastName"
-                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
-                                        placeholder="Doe" />
-                                </label>
-                            </div>
+                        <div class="map-placeholder">
+                            <span class="material-symbols-rounded">location_on</span>
+                        </div>
 
-                            <div class="grid gap-4">
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Email Address
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        required
-                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
-                                        placeholder="jane.doe@example.com" />
-                                </label>
-                            </div>
+                        <button type="submit" class="primary-btn">
+                            <span class="material-symbols-rounded" style="font-size: 18px;">save</span>
+                            Sign Up
+                        </button>
 
-                            <div class="grid gap-4 md:grid-cols-2">
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Password
-                                    <input
-                                        type="password"
-                                        name="password"
-                                        required
-                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
-                                        placeholder="Create a password" />
-                                </label>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Confirm Password
-                                    <input
-                                        type="password"
-                                        name="confirmPassword"
-                                        required
-                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
-                                        placeholder="Confirm password" />
-                                </label>
-                            </div>
-
-                            <div class="grid gap-4 md:grid-cols-2">
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Contact Number
-                                    <input
-                                        type="tel"
-                                        name="contact"
-                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
-                                        placeholder="(555) 000-0000" />
-                                </label>
-                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    Date of Birth
-                                    <input
-                                        type="date"
-                                        name="dob"
-                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none" />
-                                </label>
-                            </div>
-
-                            <button type="submit" class="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-white text-sm font-semibold shadow-lg transition hover:bg-primary/90">
-                                <span class="material-symbols-rounded text-base">person_add</span>
-                                Create Account
-                            </button>
-                        </form>
-
-                        <p class="text-center text-sm text-slate-500 dark:text-slate-300">
+                        <p class="text-center text-sm text-slate-600">
                             Already have an account?
-                            <a th:href="@{/login(role=${role})}" class="font-semibold text-primary hover:text-primary/80">Sign In</a>
+                            <a th:href="@{/login(role=${role})}" class="font-semibold text-rose-600 hover:text-rose-700">Sign In</a>
                         </p>
-                    </div>
+                    </form>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
+    </main>
+
+    <footer class="bg-rose-50 border-t border-rose-100 py-8 text-center text-sm text-slate-500">
+        <p class="space-x-4">
+            <a href="#" class="hover:text-slate-700">Privacy</a>
+            <a href="#" class="hover:text-slate-700">Terms</a>
+            <a href="#" class="hover:text-slate-700">Help</a>
+            <a href="#" class="hover:text-slate-700">Contact</a>
+        </p>
+    </footer>
 
     <script>
         const authForm = document.getElementById('authForm');
         if (authForm) {
-            authForm.addEventListener('submit', () => {
+            authForm.addEventListener('submit', function (event) {
                 const firstName = document.getElementById('firstName')?.value || '';
                 const lastName = document.getElementById('lastName')?.value || '';
-                const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
-                document.getElementById('fullName').value = fullName;
+                const password = document.getElementById('password')?.value || '';
+                const confirmPassword = document.getElementById('confirmPassword')?.value || '';
+
+                if (password !== confirmPassword) {
+                    event.preventDefault();
+                    alert('Password and Confirm Password do not match.');
+                    return;
+                }
+
+                document.getElementById('fullName').value = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
             });
         }
     </script>

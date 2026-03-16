@@ -31,6 +31,8 @@
     </style>
 </head>
 <body class="min-h-screen bg-light flex items-center justify-center px-4 py-10">
+    <div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+    <div th:replace="~{fragments/breadcrumb :: breadcrumb('Sign In')}"></div>
     <div class="w-full max-w-3xl">
         <div class="bg-white dark:bg-slate-900 rounded-xl border border-primary shadow-sm">
             <div class="px-8 py-10 md:px-12">

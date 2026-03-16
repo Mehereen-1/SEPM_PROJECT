@@ -3,269 +3,197 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Binimoy - University Book Exchange Platform</title>
+    <title>Bibliophile - Share Stories</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,0,0" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,500,0,0" rel="stylesheet" />
     <style>
+        :root {
+            --rose-50: #f8f1f5;
+            --rose-100: #f5e8ee;
+            --rose-300: #f7c7d8;
+            --rose-500: #f43f6a;
+            --rose-600: #e73360;
+            --ink-900: #0f172a;
+            --ink-600: #475569;
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--rose-50);
+            color: var(--ink-900);
         }
 
-        .btn-primary {
-            background: #f43464;
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 610px;
+            background: #fff;
         }
 
-        .btn-primary:hover {
-            background: #d12f58;
+        .hero-visual {
+            background: linear-gradient(180deg, #f7ebf1 0%, #f4e4ec 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
         }
 
-        .bg-light {
-            background: radial-gradient(circle at top, rgba(244, 52, 100, 0.12), transparent 70%),
-                        linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        .hero-content {
+            background: #fbfbfc;
+            padding: 64px 56px;
+            display: flex;
+            align-items: center;
         }
 
-        .text-primary {
-            color: #f43464;
+        .cta-primary {
+            background: var(--rose-500);
+            color: #fff;
         }
 
-        .hero-gradient {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        .cta-primary:hover {
+            background: var(--rose-600);
+        }
+
+        .cta-secondary {
+            background: #eff2f6;
+            color: #1f2937;
+        }
+
+        .cta-secondary:hover {
+            background: #e5eaf0;
         }
 
         .feature-card {
+            background: #fff;
+            border: 1px solid #eadce3;
+            border-radius: 16px;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .feature-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 14px 24px rgba(244, 52, 100, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 14px 24px rgba(244, 63, 106, 0.12);
+        }
+
+        @media (max-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-content {
+                padding: 44px 24px;
+            }
         }
     </style>
 </head>
-<body class="min-h-screen bg-light text-slate-700">
-    <div th:replace="fragments/navbar :: mainNavbar"></div>
+<body>
+    <div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+    <div th:replace="~{fragments/breadcrumb :: breadcrumb('Home')}"></div>
 
     <main>
-        <!-- Hero Section -->
-        <section class="hero-gradient py-16 md:py-28 px-4 sm:px-6 lg:px-8">
-            <div class="max-w-7xl mx-auto">
-                <div class="grid lg:grid-cols-2 gap-12 items-center">
-                    <!-- Left Content -->
-                    <div class="space-y-8">
-                        <div class="space-y-4">
-                            <span class="inline-flex items-center rounded-full px-4 py-2 bg-white border border-pink-200 shadow-sm">
-                                <span class="material-symbols-rounded text-primary text-lg mr-2">school</span>
-                                <span class="text-sm font-semibold text-slate-900">University Book Exchange</span>
-                            </span>
-                            <h1 class="text-5xl md:text-6xl font-bold text-slate-900 leading-tight">
-                                Exchange Books,<br />
-                                <span class="text-primary">Build Community</span>
-                            </h1>
-                        </div>
-                        <p class="text-lg text-slate-600 leading-relaxed max-w-2xl">
-                            Binimoy connects students across campus to share books, discover new reads, and build a vibrant reading community. Share what you've finished and find the titles you're looking for.
-                        </p>
+        <section class="hero-grid">
+            <div class="hero-visual">
+                <svg viewBox="0 0 460 560" class="w-full max-w-md" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="hairShade" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#6f3947" />
+                            <stop offset="100%" stop-color="#4d2230" />
+                        </linearGradient>
+                    </defs>
+                    <ellipse cx="230" cy="520" rx="120" ry="18" fill="#ead9e2"/>
+                    <path d="M110 230c0-94 54-150 118-150s118 56 118 150v135H110z" fill="url(#hairShade)"/>
+                    <ellipse cx="230" cy="230" rx="86" ry="100" fill="#ffd8cb"/>
+                    <circle cx="198" cy="218" r="8" fill="#6d3a3d"/>
+                    <circle cx="262" cy="218" r="8" fill="#6d3a3d"/>
+                    <path d="M206 266c14 12 34 12 48 0" stroke="#cf7e86" stroke-width="6" stroke-linecap="round" fill="none"/>
+                    <rect x="128" y="332" width="204" height="150" rx="18" fill="#f08f7a"/>
+                    <path d="M230 332v150" stroke="#d97461" stroke-width="4"/>
+                    <path d="M128 350h204" stroke="#e49a88" stroke-width="4"/>
+                </svg>
+            </div>
 
-                        <!-- CTA Buttons -->
-                        <div class="flex flex-col sm:flex-row gap-4 pt-4">
-                            <a th:href="@{/)" class="btn-primary w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 text-white rounded-lg font-semibold transition hover:shadow-lg">
-                                <span class="material-symbols-rounded">home</span>
-                                Get Started
-                            </a>
-                            <a th:href="@{/offers-browse}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 border border-slate-300 bg-white rounded-lg font-semibold text-slate-700 transition hover:bg-slate-50">
-                                <span class="material-symbols-rounded">search</span>
-                                Browse Offers
-                            </a>
-                        </div>
+            <div class="hero-content">
+                <div class="max-w-xl">
+                    <p class="text-xs sm:text-sm uppercase tracking-[0.24em] text-rose-500 font-bold">A Community For Readers</p>
+                    <h1 class="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.05] text-slate-900">There Is No Friend As Loyal As A Book</h1>
+                    <p class="mt-6 text-lg text-slate-600 leading-relaxed">You are not done with a book until you pass it to another reader. Join our journey of shared stories.</p>
 
-                        <!-- Trust Stats -->
-                        <div class="grid grid-cols-3 gap-6 pt-8 border-t border-slate-200">
-                            <div>
-                                <p class="text-2xl md:text-3xl font-bold text-slate-900">100+</p>
-                                <p class="text-sm text-slate-600">Active Students</p>
-                            </div>
-                            <div>
-                                <p class="text-2xl md:text-3xl font-bold text-slate-900">500+</p>
-                                <p class="text-sm text-slate-600">Books Exchanged</p>
-                            </div>
-                            <div>
-                                <p class="text-2xl md:text-3xl font-bold text-slate-900">4.8/5</p>
-                                <p class="text-sm text-slate-600">User Rating</p>
-                            </div>
-                        </div>
+                    <div class="mt-9 flex flex-wrap gap-3">
+                        <a th:href="@{/register(role='BOOK_FRIEND')}" class="cta-primary inline-flex items-center gap-2 rounded-full px-7 py-3 font-semibold shadow-lg shadow-rose-200">
+                            <span class="material-symbols-rounded" style="font-size:18px;">auto_stories</span>
+                            Continue as Book Friend
+                        </a>
+                        <a th:href="@{/register(role='DELIVERY_PARTNER')}" class="cta-secondary inline-flex items-center gap-2 rounded-full px-7 py-3 font-semibold">
+                            <span class="material-symbols-rounded" style="font-size:18px;">local_shipping</span>
+                            Continue as Delivery Partner
+                        </a>
                     </div>
 
-                    <!-- Right Illustration -->
-                    <div class="hidden lg:flex justify-center">
-                        <div class="relative w-full max-w-sm">
-                            <div class="aspect-square bg-gradient-to-br from-pink-200 to-purple-200 rounded-2xl flex items-center justify-center text-8xl shadow-lg">
-                                📚
-                            </div>
-                            <div class="absolute -bottom-4 -right-4 bg-white rounded-xl p-4 shadow-md border border-slate-200">
-                                <p class="text-sm font-semibold text-slate-900">Discover Great Reads</p>
-                                <p class="text-xs text-slate-600">Share your favorites</p>
-                            </div>
+                    <div class="mt-10 pt-6 border-t border-rose-100 grid sm:grid-cols-2 gap-5 text-sm">
+                        <div>
+                            <p class="font-bold text-slate-800">❤ Our Mission</p>
+                            <p class="mt-1 text-slate-500">Connecting readers through the magic of physical books.</p>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800">♻ Sustainable</p>
+                            <p class="mt-1 text-slate-500">Reducing waste by giving every story a second life.</p>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- How It Works Section -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-            <div class="grid lg:grid-cols-2 gap-12 items-center">
-                <div class="space-y-6">
-                    <div class="space-y-3">
-                        <span class="inline-block text-sm font-bold uppercase tracking-wider text-primary">How it works</span>
-                        <h2 class="text-4xl md:text-5xl font-bold text-slate-900">A Simple Process</h2>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0">
-                                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100">
-                                    <span class="material-symbols-rounded text-primary text-lg">1</span>
-                                </div>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-slate-900">List Your Books</h3>
-                                <p class="text-slate-600 text-sm">Share books you've finished with details and photos.</p>
-                            </div>
+        <section class="bg-rose-100/60 py-16 sm:py-20">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl font-extrabold text-slate-900">Why Choose Bibliophile?</h2>
+                <p class="mt-3 text-slate-600 max-w-2xl">We believe in the magic of shared stories and the journey of a well-loved book across different hands and homes.</p>
+
+                <div class="mt-10 grid md:grid-cols-3 gap-6">
+                    <article class="feature-card p-6">
+                        <div class="h-10 w-10 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center">
+                            <span class="material-symbols-rounded">auto_stories</span>
                         </div>
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0">
-                                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100">
-                                    <span class="material-symbols-rounded text-primary text-lg">2</span>
-                                </div>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-slate-900">Connect with Readers</h3>
-                                <p class="text-slate-600 text-sm">Browse offers and find people interested in your titles.</p>
-                            </div>
+                        <h3 class="mt-5 text-2xl font-bold text-slate-900">Curated Selection</h3>
+                        <p class="mt-2 text-slate-600">Discover books that resonate with your soul and fit your reading history perfectly.</p>
+                    </article>
+
+                    <article class="feature-card p-6">
+                        <div class="h-10 w-10 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center">
+                            <span class="material-symbols-rounded">local_shipping</span>
                         </div>
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0">
-                                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100">
-                                    <span class="material-symbols-rounded text-primary text-lg">3</span>
-                                </div>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-slate-900">Complete Exchange</h3>
-                                <p class="text-slate-600 text-sm">Arrange delivery and enjoy your new reads.</p>
-                            </div>
+                        <h3 class="mt-5 text-2xl font-bold text-slate-900">Fast Delivery</h3>
+                        <p class="mt-2 text-slate-600">Our network of delivery partners ensures your next adventure arrives safely.</p>
+                    </article>
+
+                    <article class="feature-card p-6">
+                        <div class="h-10 w-10 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center">
+                            <span class="material-symbols-rounded">groups</span>
                         </div>
-                    </div>
-                </div>
-                <div class="relative">
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-                        <h3 class="text-2xl font-bold text-slate-900 mb-6">Why Choose Binimoy?</h3>
-                        <ul class="space-y-4">
-                            <li class="flex gap-3">
-                                <span class="material-symbols-rounded text-primary flex-shrink-0">verified</span>
-                                <div>
-                                    <p class="font-semibold text-slate-900">Verified Community</p>
-                                    <p class="text-sm text-slate-600">Campus-wide network of trusted readers</p>
-                                </div>
-                            </li>
-                            <li class="flex gap-3">
-                                <span class="material-symbols-rounded text-primary flex-shrink-0">security</span>
-                                <div>
-                                    <p class="font-semibold text-slate-900">Safe Exchanges</p>
-                                    <p class="text-sm text-slate-600">Clear ratings, transparent process</p>
-                                </div>
-                            </li>
-                            <li class="flex gap-3">
-                                <span class="material-symbols-rounded text-primary flex-shrink-0">free_cancellation</span>
-                                <div>
-                                    <p class="font-semibold text-slate-900">No Fees</p>
-                                    <p class="text-sm text-slate-600">100% free book exchange platform</p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
+                        <h3 class="mt-5 text-2xl font-bold text-slate-900">Community Driven</h3>
+                        <p class="mt-2 text-slate-600">Join thousands of passionate readers sharing insights and recommendations.</p>
+                    </article>
                 </div>
             </div>
         </section>
 
-        <!-- Features Section -->
-        <section id="features" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-            <div class="text-center mb-12">
-                <span class="inline-block text-sm font-bold uppercase tracking-wider text-primary mb-3">Features</span>
-                <h2 class="text-4xl md:text-5xl font-bold text-slate-900 mb-4">Everything for Book Lovers</h2>
-                <p class="text-lg text-slate-600 max-w-2xl mx-auto">Discover tools designed to make book sharing easy, safe, and fun.</p>
-            </div>
-
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="feature-card bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
-                    <div class="text-5xl mb-4">📚</div>
-                    <h3 class="text-xl font-semibold text-slate-900 mb-2">Smart Browsing</h3>
-                    <p class="text-slate-600">Easily search and filter books by genre, condition, and availability.</p>
-                </div>
-
-                <div class="feature-card bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
-                    <div class="text-5xl mb-4">💬</div>
-                    <h3 class="text-xl font-semibold text-slate-900 mb-2">Direct Messaging</h3>
-                    <p class="text-slate-600">Chat with other students to discuss exchanges and coordinate handoffs.</p>
-                </div>
-
-                <div class="feature-card bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
-                    <div class="text-5xl mb-4">⭐</div>
-                    <h3 class="text-xl font-semibold text-slate-900 mb-2">Ratings & Reviews</h3>
-                    <p class="text-slate-600">Build your reputation and learn from community reviews and ratings.</p>
-                </div>
-
-                <div class="feature-card bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
-                    <div class="text-5xl mb-4">📸</div>
-                    <h3 class="text-xl font-semibold text-slate-900 mb-2">Photo Uploads</h3>
-                    <p class="text-slate-600">Share detailed photos of books to ensure accurate condition assessment.</p>
-                </div>
-
-                <div class="feature-card bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
-                    <div class="text-5xl mb-4">🗺️</div>
-                    <h3 class="text-xl font-semibold text-slate-900 mb-2">Campus Network</h3>
-                    <p class="text-slate-600">Connect with students across your campus for convenient exchanges.</p>
-                </div>
-
-                <div class="feature-card bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
-                    <div class="text-5xl mb-4">🎁</div>
-                    <h3 class="text-xl font-semibold text-slate-900 mb-2">Rewards</h3>
-                    <p class="text-slate-600">Earn badges and special perks as you participate in the community.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- CTA Section -->
-        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-            <div class="bg-white rounded-2xl border border-pink-200 shadow-sm p-12 md:p-16 text-center">
-                <h2 class="text-4xl md:text-5xl font-bold text-slate-900 mb-4">Ready to Start Sharing?</h2>
-                <p class="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">Join thousands of students building a community of readers.</p>
-                <a th:href="@{/)" class="btn-primary inline-flex items-center gap-2 px-8 py-4 text-white rounded-lg font-semibold transition hover:shadow-lg">
-                    <span class="material-symbols-rounded">arrow_forward</span>
-                    Get Started Now
-                </a>
+        <section class="bg-white py-16 sm:py-20 text-center">
+            <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl sm:text-5xl font-extrabold text-slate-900">Ready to start your next chapter?</h2>
+                <p class="mt-4 text-slate-600 text-lg">Join the Bibliophile community today and help books travel the world.</p>
+                <a th:href="@{/register(role='BOOK_FRIEND')}" class="mt-8 inline-flex rounded-full bg-rose-500 px-10 py-4 text-white font-bold shadow-lg shadow-rose-200 hover:bg-rose-600">Get Started Now</a>
             </div>
         </section>
     </main>
-</body>
-</html>
-            </article>
-        </div>
-    </section>
 
-    <section class="py-14 bg-slate-900 text-white">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl sm:text-4xl font-extrabold">Ready for your next read?</h2>
-            <p class="mt-3 text-slate-300 text-lg">Join the Binimoy community and start exchanging books today.</p>
-            <div class="mt-7">
-                <a sec:authorize="!isAuthenticated()" th:href="@{/register}" class="inline-block px-8 py-3 rounded-xl bg-white text-slate-900 font-bold hover:bg-slate-100">Get Started</a>
-                <a sec:authorize="isAuthenticated()" th:href="@{/offers-browse}" class="inline-block px-8 py-3 rounded-xl bg-white text-slate-900 font-bold hover:bg-slate-100">Explore Offers</a>
-            </div>
-        </div>
-    </section>
-</main>
-
-<footer class="py-10 text-center text-sm text-slate-500">
-    <p>© 2026 Binimoy - Share Books, Share Knowledge.</p>
-</footer>
+    <footer class="bg-rose-50 border-t border-rose-100 py-8 text-center text-sm text-slate-500">
+        <p class="space-x-4">
+            <a href="#" class="hover:text-slate-700">Privacy</a>
+            <a href="#" class="hover:text-slate-700">Terms</a>
+            <a href="#" class="hover:text-slate-700">Help</a>
+            <a href="#" class="hover:text-slate-700">Contact</a>
+        </p>
+        <p class="mt-3">© 2026 Bibliophile. For the love of paper and ink.</p>
+    </footer>
 </body>
 </html>

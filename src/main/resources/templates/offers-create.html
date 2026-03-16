@@ -224,7 +224,8 @@
     </style>
 </head>
 <body>
-<div th:replace="fragments/navbar :: mainNavbar"></div>
+<div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+<div th:replace="~{fragments/breadcrumb :: breadcrumb('Create Offer')}"></div>
 
 <main class="page">
     <section class="intro">

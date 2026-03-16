@@ -462,7 +462,8 @@
     </style>
 </head>
 <body>
-<div th:replace="fragments/navbar :: mainNavbar"></div>
+<div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+<div th:replace="~{fragments/breadcrumb :: breadcrumb('Offers')}"></div>
 
 <main class="page-wrap">
     <section class="hero-panel">

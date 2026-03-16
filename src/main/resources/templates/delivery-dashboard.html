@@ -34,32 +34,9 @@
     </style>
 </head>
 <body class="min-h-screen bg-muted">
-    <!-- Navbar -->
-    <header class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <span class="text-white text-xl">📚</span>
-                    </div>
-                    <span class="text-lg font-semibold text-slate-900">Binimoy</span>
-                </div>
-                <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-700">
-                    <a th:href="@{/delivery/offers}" class="hover:text-pink-600">Offers</a>
-                    <a th:href="@{/delivery/pending}" class="hover:text-pink-600">Pending</a>
-                    <a th:href="@{/delivery/completed}" class="hover:text-pink-600">Completed</a>
-                    <a th:href="@{/about}" class="hover:text-pink-600">About Us</a>
-                    <a th:href="@{/profile}" class="hover:text-pink-600">Profile</a>
-                </nav>
-                <div class="flex items-center gap-3">
-                    <a th:href="@{/logout}" class="inline-flex items-center gap-2 rounded-lg border border-pink-200 bg-white px-4 py-2 text-sm font-semibold text-pink-600 hover:bg-pink-50">
-                        <span class="material-symbols-rounded">logout</span>
-                        Logout
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+    <div th:replace="~{fragments/navbar-delivery :: deliveryNavbar}"></div>
+
+    <div th:replace="~{fragments/breadcrumb :: breadcrumb('Delivery Dashboard')}"></div>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

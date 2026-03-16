@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<body>
+<div th:fragment="deliveryNavbar">
+    <style>
+        .delivery-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .delivery-nav-inner {
+            max-width: 1240px;
+            height: 68px;
+            margin: 0 auto;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .delivery-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #111827;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .delivery-brand-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #f43f6a 0%, #d82e5a 100%);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .delivery-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .delivery-link {
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .delivery-link:hover {
+            color: #f43f6a;
+            background: #fce7f3;
+        }
+
+        .delivery-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .delivery-user {
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .delivery-logout {
+            border: 1.5px solid #f43f6a;
+            color: #f43f6a;
+            background: #fff;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .delivery-logout:hover {
+            background: #fff0f3;
+        }
+
+        .delivery-toggle {
+            display: none;
+            width: 36px;
+            height: 36px;
+            border: 0;
+            border-radius: 999px;
+            background: #fce7f3;
+            color: #f43f6a;
+        }
+
+        @media (max-width: 900px) {
+            .delivery-toggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .delivery-nav-links {
+                position: absolute;
+                top: 68px;
+                left: 0;
+                right: 0;
+                background: #ffffff;
+                border-bottom: 1px solid #e2e8f0;
+                display: none;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 8px 12px;
+            }
+
+            .delivery-nav.open .delivery-nav-links {
+                display: flex;
+            }
+
+            .delivery-link {
+                border-radius: 8px;
+                text-align: left;
+                padding: 10px 12px;
+            }
+        }
+    </style>
+
+    <header class="delivery-nav" id="deliveryNav">
+        <div class="delivery-nav-inner">
+            <a th:href="@{/}" class="delivery-brand">
+                <span class="delivery-brand-mark">📚</span>
+                <span>Binimoy</span>
+            </a>
+
+            <button class="delivery-toggle" id="deliveryToggle" type="button">
+                <span class="material-symbols-rounded">menu</span>
+            </button>
+
+            <nav class="delivery-nav-links">
+                <a th:href="@{/delivery/dashboard}" class="delivery-link">Dashboard</a>
+                <a th:href="@{/delivery/offers}" class="delivery-link">Available</a>
+                <a th:href="@{/delivery/pending}" class="delivery-link">Pending</a>
+                <a th:href="@{/delivery/completed}" class="delivery-link">Completed</a>
+                <a th:href="@{/profile}" class="delivery-link">Profile</a>
+            </nav>
+
+            <div class="delivery-actions">
+                <span class="delivery-user" th:text="${#authentication.name}">user</span>
+                <form th:action="@{/logout}" method="post">
+                    <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" class="delivery-logout">Logout</button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <script>
+        (function () {
+            const nav = document.getElementById('deliveryNav');
+            const toggle = document.getElementById('deliveryToggle');
+            if (!nav || !toggle) {
+                return;
+            }
+            toggle.addEventListener('click', function () {
+                nav.classList.toggle('open');
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>

@@ -31,7 +31,9 @@
     </style>
 </head>
 <body class="min-h-screen bg-light">
-    <div th:replace="fragments/navbar :: mainNavbar"></div>
+    <div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+
+    <div th:replace="~{fragments/breadcrumb :: breadcrumb('Sign Up')}"></div>
 
     <main class="min-h-[calc(100vh-76px)] flex items-center justify-center px-4 py-10">
     <div class="w-full max-w-3xl">

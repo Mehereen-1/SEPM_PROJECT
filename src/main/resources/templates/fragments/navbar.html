@@ -3,234 +3,184 @@
 <body>
 <div th:fragment="mainNavbar">
     <style>
-        .app-navbar {
+        .biblio-nav {
             position: sticky;
             top: 0;
             z-index: 1000;
-            background: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background: #f5edf1;
+            border-bottom: 1px solid #eadce3;
         }
 
-        .app-navbar-inner {
-            max-width: 1280px;
+        .biblio-nav-inner {
+            max-width: 1240px;
+            height: 68px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 0 16px;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            height: 64px;
-            gap: 1rem;
-        }
-
-        .app-brand {
-            color: #1f2937;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1.25rem;
-            letter-spacing: -0.5px;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .app-navbar nav {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex: 1;
-            justify-content: center;
-        }
-
-        .app-nav-link {
-            color: #475569;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9375rem;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            transition: color 0.2s ease, background 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .app-nav-link:hover {
-            color: #f43464;
-            background: rgba(244, 52, 100, 0.08);
-        }
-
-        .app-nav-link.active {
-            color: #f43464;
-            background: rgba(244, 52, 100, 0.1);
-        }
-
-        .app-navbar-end {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            flex-shrink: 0;
-        }
-
-        .app-auth-chip {
-            font-size: 0.875rem;
-            color: #475569;
-            padding: 0.5rem 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .app-logout-btn {
-            border: 1px solid #f43464;
-            background: transparent;
-            color: #f43464;
-            border-radius: 0.5rem;
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s ease, color 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+            gap: 12px;
             font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
-        .app-logout-btn:hover {
-            background: #f43464;
-            color: #ffffff;
+        .biblio-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #111827;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: -0.02em;
         }
 
-        .app-mobile-toggle {
-            display: none;
-            background: transparent;
-            color: #1f2937;
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            font-weight: 600;
+        .biblio-brand-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: #f43f6a;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1rem;
+            line-height: 1;
+        }
+
+        .biblio-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .biblio-link {
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 999px;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .biblio-link:hover {
+            color: #f43f6a;
+            background: #fff;
+        }
+
+        .biblio-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .biblio-icon-btn {
+            width: 36px;
+            height: 36px;
+            border: 0;
+            border-radius: 999px;
+            background: #f8d9e4;
+            color: #f43f6a;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .biblio-icon-btn:hover {
+            background: #f7c9da;
+            transform: translateY(-1px);
+        }
+
+        .biblio-user {
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .biblio-logout {
+            border: 1px solid #f43f6a;
+            color: #f43f6a;
+            background: transparent;
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-weight: 700;
+            font-size: 0.8rem;
             cursor: pointer;
-            flex-shrink: 0;
         }
 
-        .app-mobile-toggle:hover {
-            background: #f3f4f6;
+        .biblio-toggle {
+            display: none;
+            width: 36px;
+            height: 36px;
+            border: 0;
+            border-radius: 999px;
+            background: #f8d9e4;
+            color: #f43f6a;
         }
 
-        @media (max-width: 960px) {
-            .app-mobile-toggle {
+        @media (max-width: 900px) {
+            .biblio-toggle {
                 display: inline-flex;
                 align-items: center;
-                gap: 0.5rem;
+                justify-content: center;
             }
 
-            .app-navbar-inner {
-                height: 56px;
-            }
-
-            .app-nav-wrap {
+            .biblio-nav-links {
                 position: absolute;
-                top: 56px;
+                top: 68px;
                 left: 0;
                 right: 0;
-                background: #ffffff;
-                border-bottom: 1px solid #e2e8f0;
+                background: #f5edf1;
+                border-bottom: 1px solid #eadce3;
                 display: none;
                 flex-direction: column;
-                padding: 0.5rem;
-                gap: 0.25rem;
+                align-items: stretch;
+                padding: 8px 12px;
             }
 
-            .app-navbar.open .app-nav-wrap {
+            .biblio-nav.open .biblio-nav-links {
                 display: flex;
             }
 
-            nav {
-                display: flex;
-                flex-direction: column;
-                gap: 0.25rem;
-                width: 100%;
-            }
-
-            .app-nav-link {
-                width: 100%;
-                padding: 0.75rem 1rem;
-                text-align: left;
-            }
-
-            .app-navbar-end {
-                flex-direction: column;
-                width: 100%;
-                padding: 0 0.5rem;
-            }
-
-            .app-auth-chip {
-                width: 100%;
-                justify-content: flex-start;
-            }
-
-            .app-logout-btn {
-                width: 100%;
-                justify-content: center;
+            .biblio-link {
+                border-radius: 10px;
+                text-align: center;
             }
         }
     </style>
 
-    <header class="app-navbar" id="appNavbarRoot">
-        <div class="app-navbar-inner">
-            <a th:href="@{/}" class="app-brand">📚 Binimoy</a>
+    <header class="biblio-nav" id="biblioNav">
+        <div class="biblio-nav-inner">
+            <a th:href="@{/}" class="biblio-brand">
+                <span class="biblio-brand-mark">📖</span>
+                <span>Bibliophile</span>
+            </a>
 
-            <button type="button" class="app-mobile-toggle" id="appNavToggle">
+            <button class="biblio-toggle" id="biblioToggle" type="button">
                 <span class="material-symbols-rounded">menu</span>
             </button>
 
-            <div class="app-nav-wrap" id="appNavWrap">
-                <nav>
-                    <a th:href="@{/}" class="app-nav-link">
-                        <span class="material-symbols-rounded" style="font-size: 1.25rem;">home</span>
-                        <span class="hidden md:inline">Home</span>
-                    </a>
-                    <a th:href="@{/browse}" class="app-nav-link">
-                        <span class="material-symbols-rounded" style="font-size: 1.25rem;">library_books</span>
-                        <span class="hidden lg:inline">Books</span>
-                    </a>
-                    <a th:href="@{/offers-browse}" class="app-nav-link">
-                        <span class="material-symbols-rounded" style="font-size: 1.25rem;">local_offer</span>
-                        <span class="hidden lg:inline">Offers</span>
-                    </a>
-                    <a th:href="@{/my-offers}" class="app-nav-link" sec:authorize="isAuthenticated()">
-                        <span class="material-symbols-rounded" style="font-size: 1.25rem;">folder</span>
-                        <span class="hidden lg:inline">My Offers</span>
-                    </a>
-                    <a th:href="@{/exchange-center}" class="app-nav-link" sec:authorize="isAuthenticated()">
-                        <span class="material-symbols-rounded" style="font-size: 1.25rem;">swap_horiz</span>
-                        <span class="hidden lg:inline">Exchange</span>
-                    </a>
-                </nav>
-            </div>
+            <nav class="biblio-nav-links">
+                <a th:href="@{/}" class="biblio-link">Home</a>
+                <a th:href="@{/browse}" class="biblio-link">Books</a>
+                <a th:href="@{/offers-browse}" class="biblio-link">Offers</a>
+                <a sec:authorize="isAuthenticated()" th:href="@{/my-offers}" class="biblio-link">My Offers</a>
+                <a sec:authorize="isAuthenticated()" th:href="@{/exchange-center}" class="biblio-link">Exchange</a>
+            </nav>
 
-            <div class="app-navbar-end">
-                <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="border border-slate-300 text-slate-700 hover:bg-slate-50 rounded px-4 py-2 text-sm font-semibold transition">
-                    Sign In
-                </a>
-                <a sec:authorize="!isAuthenticated()" th:href="@{/register}" class="bg-primary text-white hover:bg-primary-dark rounded px-4 py-2 text-sm font-semibold transition">
-                    Sign Up
+            <div class="biblio-actions">
+                <a sec:authorize="!isAuthenticated()" th:href="@{/login(role='BOOK_FRIEND')}" class="biblio-link">Login</a>
+                <a sec:authorize="!isAuthenticated()" th:href="@{/register(role='BOOK_FRIEND')}" class="biblio-icon-btn" aria-label="Sign up">
+                    <span class="material-symbols-rounded" style="font-size: 19px;">person_add</span>
                 </a>
 
-                <span sec:authorize="isAuthenticated()" class="app-auth-chip" style="display: none;">
-                    <span class="material-symbols-rounded" style="font-size: 1.25rem;">account_circle</span>
-                    <span class="hidden sm:inline" th:text="${#authentication.name}">user</span>
-                </span>
-                <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display: none;">
+                <span sec:authorize="isAuthenticated()" class="biblio-user" th:text="${#authentication.name}">user</span>
+                <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
                     <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="app-logout-btn">
-                        <span class="material-symbols-rounded" style="font-size: 1.25rem;">logout</span>
-                        <span class="hidden sm:inline">Logout</span>
-                    </button>
+                    <button type="submit" class="biblio-logout">Logout</button>
                 </form>
             </div>
         </div>
@@ -238,45 +188,221 @@
 
     <script>
         (function () {
-            const root = document.getElementById('appNavbarRoot');
-            const toggle = document.getElementById('appNavToggle');
-            if (!root || !toggle) {
+            const nav = document.getElementById('biblioNav');
+            const toggle = document.getElementById('biblioToggle');
+            if (!nav || !toggle) {
                 return;
             }
             toggle.addEventListener('click', function () {
-                root.classList.toggle('open');
-            });
-            
-            // Close menu when a link is clicked
-            document.querySelectorAll('.app-nav-link').forEach(link => {
-                link.addEventListener('click', function () {
-                    root.classList.remove('open');
-                });
+                nav.classList.toggle('open');
             });
         })();
     </script>
 </div>
-</body>
-</html>
-                        <button type="submit" class="app-logout-btn">Logout</button>
-                    </form>
-                </nav>
+
+<!-- Reader Navbar Fragment (for authenticated readers) -->
+<div th:fragment="readerNavbar">
+    <style>
+        .biblio-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: #f5edf1;
+            border-bottom: 1px solid #eadce3;
+        }
+
+        .biblio-nav-inner {
+            max-width: 1240px;
+            height: 68px;
+            margin: 0 auto;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .biblio-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #111827;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .biblio-brand-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: #f43f6a;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .biblio-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .biblio-link {
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 999px;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .biblio-link:hover {
+            color: #f43f6a;
+            background: #fff;
+        }
+
+        .biblio-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .biblio-icon-btn {
+            width: 36px;
+            height: 36px;
+            border: 0;
+            border-radius: 999px;
+            background: #f8d9e4;
+            color: #f43f6a;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .biblio-icon-btn:hover {
+            background: #f7c9da;
+            transform: translateY(-1px);
+        }
+
+        .biblio-user {
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        .biblio-logout {
+            border: 1px solid #f43f6a;
+            color: #f43f6a;
+            background: transparent;
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .biblio-toggle {
+            display: none;
+            width: 36px;
+            height: 36px;
+            border: 0;
+            border-radius: 999px;
+            background: #f8d9e4;
+            color: #f43f6a;
+        }
+
+        @media (max-width: 900px) {
+            .biblio-toggle {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .biblio-nav-links {
+                position: absolute;
+                top: 68px;
+                left: 0;
+                right: 0;
+                background: #f5edf1;
+                border-bottom: 1px solid #eadce3;
+                display: none;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 8px 12px;
+            }
+
+            .biblio-nav.open .biblio-nav-links {
+                display: flex;
+            }
+
+            .biblio-link {
+                border-radius: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+
+    <header class="biblio-nav" id="readerBiblioNav">
+        <div class="biblio-nav-inner">
+            <a th:href="@{/reader/dashboard}" class="biblio-brand">
+                <span class="biblio-brand-mark">📖</span>
+                <span>Bibliophile</span>
+            </a>
+
+            <button class="biblio-toggle" id="readerBiblioToggle" type="button">
+                <span class="material-symbols-rounded">menu</span>
+            </button>
+
+            <nav class="biblio-nav-links">
+                <a th:href="@{/reader/dashboard}" class="biblio-link">Home</a>
+                <a th:href="@{/browse}" class="biblio-link">Books</a>
+                <a th:href="@{/offers-browse}" class="biblio-link">Offers</a>
+                <a th:href="@{/my-offers}" class="biblio-link">My Offers</a>
+                <a th:href="@{/exchange-center}" class="biblio-link">Exchange</a>
+                <a th:href="@{/profile}" class="biblio-link">Profile</a>
+            </nav>
+
+            <div class="biblio-actions">
+                <span class="biblio-user" th:text="${#authentication.name}">user</span>
+                <form th:action="@{/logout}" method="post">
+                    <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" class="biblio-logout">Logout</button>
+                </form>
             </div>
         </div>
     </header>
 
     <script>
         (function () {
-            const root = document.getElementById('appNavbarRoot');
-            const toggle = document.getElementById('appNavToggle');
-            if (!root || !toggle) {
+            const nav = document.getElementById('readerBiblioNav');
+            const toggle = document.getElementById('readerBiblioToggle');
+            if (!nav || !toggle) {
                 return;
             }
             toggle.addEventListener('click', function () {
-                root.classList.toggle('open');
+                nav.classList.toggle('open');
             });
         })();
     </script>
+</div>
+
+<div th:fragment="autoNavbar">
+    <div sec:authorize="isAuthenticated() and hasAnyAuthority('ROLE_DELIVERY_PARTNER', 'ROLE_DELIVERY')"
+        th:replace="~{fragments/navbar-delivery :: deliveryNavbar}"></div>
+    <div sec:authorize="isAuthenticated() and !hasAnyAuthority('ROLE_DELIVERY_PARTNER', 'ROLE_DELIVERY')"
+        th:replace="~{fragments/navbar :: readerNavbar}"></div>
+    <div sec:authorize="!isAuthenticated()"
+        th:replace="~{fragments/navbar :: mainNavbar}"></div>
 </div>
 </body>
 </html>

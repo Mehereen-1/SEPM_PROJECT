@@ -27,8 +27,25 @@ public class AuthController {
 
     @GetMapping("/login")
     public String login(@RequestParam(value = "role", required = false, defaultValue = "BOOK_FRIEND") String role,
+                        @RequestParam(value = "error", required = false) String error,
+                        @RequestParam(value = "registered", required = false) String registered,
+                        @RequestParam(value = "logout", required = false) String logout,
                         Model model) {
-        return "redirect:/auth?role=" + role + "&tab=signIn";
+        StringBuilder redirectUrl = new StringBuilder("redirect:/auth?role=")
+                .append(role)
+                .append("&tab=signIn");
+
+        if (error != null) {
+            redirectUrl.append("&error=true");
+        }
+        if (registered != null) {
+            redirectUrl.append("&registered=true");
+        }
+        if (logout != null) {
+            redirectUrl.append("&logout=true");
+        }
+
+        return redirectUrl.toString();
     }
 
     @GetMapping("/register")
@@ -68,7 +85,7 @@ public class AuthController {
             
             userService.registerUser(name, email, password, role);
             System.out.println(">>> REGISTRATION SUCCESS");
-            return "redirect:/login?registered=true";
+            return "redirect:/login?role=" + role + "&registered=true";
         } catch (Exception e) {
             System.out.println(">>> REGISTRATION FAILED: " + e.getMessage());
             model.addAttribute("error", "Registration failed: " + e.getMessage());

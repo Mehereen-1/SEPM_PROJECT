@@ -401,7 +401,8 @@
     </style>
 </head>
 <body>
-    <div th:replace="fragments/navbar :: mainNavbar"></div>
+    <div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+    <div th:replace="~{fragments/breadcrumb :: breadcrumb('Books')}"></div>
 
     <div class="container">
         <h2 class="page-title">Browse Our Book Catalog</h2>
