@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Browse Books - BookSwap</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+        }
+
+        /* Navbar is now handled by fragments/navbar :: mainNavbar */
+        header {
+            display: none;
+        }
+
+        nav {
+            display: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 32px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 250px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #f43464;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background: #d12f58;
+            transform: translateY(-1px);
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .book-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 320px;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .book-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .book-cover-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+        }
+
+        .book-info {
+            padding: 15px;
+        }
+
+        .book-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 8px;
+            line-height: 1.3;
+            height: 48px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .book-author {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .book-rating {
+            color: #f39c12;
+            font-size: 13px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .book-series {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .book-description {
+            color: #666;
+            font-size: 12px;
+            line-height: 1.4;
+            height: 60px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            margin-bottom: 10px;
+        }
+
+        .book-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+
+        .book-actions {
+            margin-top: 12px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+
+        .share-btn {
+            width: 100%;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 9px 10px;
+            background: #f43464;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .share-btn:hover {
+            background: #d12f58;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f43464;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-books {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 18px;
+        }
+
+        .stats {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        footer {
+            background: #222;
+            color: #bbb;
+            text-align: center;
+            padding: 20px;
+            margin-top: 60px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #999;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .book-detail-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .book-detail-author {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .book-detail-section {
+            margin-bottom: 20px;
+        }
+
+        .book-detail-section label {
+            font-weight: bold;
+            color: #f43464;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .book-detail-section p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .offer-field {
+            margin-bottom: 12px;
+        }
+
+        .offer-field label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #f43464;
+        }
+
+        .offer-field select,
+        .offer-field textarea,
+        .offer-field input {
+            width: 100%;
+            border: 1px solid #d6deeb;
+            border-radius: 8px;
+            padding: 9px 10px;
+            font-size: 14px;
+        }
+
+        .offer-field textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .offer-status {
+            margin-top: 10px;
+            border-radius: 8px;
+            padding: 9px 10px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .offer-status.success {
+            display: block;
+            background: #eaf9f0;
+            border: 1px solid #bde4cc;
+            color: #1d6c3d;
+        }
+
+        .offer-status.error {
+            display: block;
+            background: #fff2f2;
+            border: 1px solid #efc6c6;
+            color: #893131;
+        }
+
+        .offer-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .btn-secondary {
+            background: #eef2f9;
+            color: #28405f;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .books-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 15px;
+            }
+
+            input[type="text"] {
+                width: 100%;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 20% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="fragments/navbar :: mainNavbar"></div>
+
+    <div class="container">
+        <h2 class="page-title">Browse Our Book Catalog</h2>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by title or author...">
+                <button onclick="searchBooks()">Search</button>
+                <button onclick="resetSearch()">Reset</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <span>Total Books: <strong id="totalBooks">0</strong></span>
+            <span id="filteredStats" style="display: none;"> | Showing: <strong id="filteredCount">0</strong></span>
+        </div>
+
+        <div id="loadingDiv" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading books...</p>
+        </div>
+
+        <div id="booksContainer" class="books-grid" style="display: none;"></div>
+
+        <div id="noBooksDiv" class="no-books" style="display: none;">
+            No books found. Try adjusting your search.
+        </div>
+    </div>
+
+    <!-- Book Detail Modal -->
+    <div id="bookModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <div id="shareOfferModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeShareOfferModal">&times;</span>
+            <h3 style="margin-top:0;">Share This Book</h3>
+            <p id="shareSelectedBookLabel" style="color:#5f7191; margin-top:0;"></p>
+
+            <form id="shareOfferForm" novalidate>
+                <div class="offer-field">
+                    <label for="offerCondition">Condition</label>
+                    <select id="offerCondition" required>
+                        <option value="">Select condition</option>
+                        <option value="New">New</option>
+                        <option value="Like New">Like New</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Worn">Worn</option>
+                    </select>
+                </div>
+
+                <div class="offer-field">
+                    <label for="offerNote">Note</label>
+                    <textarea id="offerNote" placeholder="Example: Minimal highlighting on chapter 2, no torn pages."></textarea>
+                </div>
+
+                <div class="offer-field">
+                    <label for="offerImages">Photos (optional)</label>
+                    <input id="offerImages" type="file" accept="image/*" multiple>
+                </div>
+
+                <div class="offer-actions">
+                    <button type="button" class="btn-secondary" id="cancelShareOfferBtn">Cancel</button>
+                    <button type="submit" id="submitShareOfferBtn">Create Offer</button>
+                </div>
+
+                <div id="offerStatus" class="offer-status"></div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 BookSwap – A community for bookworms</p>
+    </footer>
+
+    <script>
+        let allBooks = [];
+        let selectedShareBook = null;
+
+        // Load books when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBooks();
+        });
+
+        function loadBooks() {
+            const loadingDiv = document.getElementById('loadingDiv');
+            const booksContainer = document.getElementById('booksContainer');
+            const noBooksDiv = document.getElementById('noBooksDiv');
+
+            loadingDiv.style.display = 'block';
+            booksContainer.style.display = 'none';
+            noBooksDiv.style.display = 'none';
+
+            fetch('/books/browse')
+                .then(response => response.json())
+                .then(data => {
+                    allBooks = data;
+                    document.getElementById('totalBooks').textContent = allBooks.length;
+                    displayBooks(allBooks);
+                    loadingDiv.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error loading books:', error);
+                    loadingDiv.innerHTML = '<p>Error loading books. Please try again later.</p>';
+                });
+        }
+
+        function displayBooks(books) {
+            const booksContainer = document.getElementById('booksContainer');
+            const noBooksDiv = document.getElementById('noBooksDiv');
+
+            if (books.length === 0) {
+                booksContainer.style.display = 'none';
+                noBooksDiv.style.display = 'block';
+                return;
+            }
+
+            booksContainer.innerHTML = '';
+            books.forEach(book => {
+                const card = createBookCard(book);
+                booksContainer.appendChild(card);
+            });
+
+            booksContainer.style.display = 'grid';
+            noBooksDiv.style.display = 'none';
+        }
+
+        function createBookCard(book) {
+            const card = document.createElement('div');
+            card.className = 'book-card';
+            card.onclick = () => showBookDetails(book);
+
+            const coverHTML = book.coverImg
+                ? `<img src="${book.coverImg}" alt="${book.title}">`
+                : `<div class="book-cover-placeholder">📖</div>`;
+
+            card.innerHTML = `
+                <div class="book-cover">
+                    ${coverHTML}
+                </div>
+                <div class="book-info">
+                    <div class="book-title">${escapeHtml(book.title)}</div>
+                    <div class="book-author">by ${escapeHtml(book.author)}</div>
+                    ${book.rating ? `<div class="book-rating">⭐ ${book.rating} / 5</div>` : ''}
+                    ${book.series ? `<div class="book-series">${escapeHtml(book.series)}</div>` : ''}
+                    ${book.description ? `<div class="book-description">${escapeHtml(book.description.substring(0, 150))}...</div>` : ''}
+                    <div class="book-meta">
+                        <span>${book.language || 'Unknown'}</span>
+                        <span>${book.pages || 'N/A'} pages</span>
+                    </div>
+                    <div class="book-actions">
+                        <button class="share-btn" data-share-book-id="${escapeHtml(book.bookId)}">Share This Book</button>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function getAuthHeaders(includeJson = false) {
+            const headers = { Accept: 'application/json' };
+            if (includeJson) {
+                headers['Content-Type'] = 'application/json';
+            }
+
+            const token = localStorage.getItem('token');
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+            return headers;
+        }
+
+        function setOfferStatus(type, message) {
+            const box = document.getElementById('offerStatus');
+            box.className = `offer-status ${type}`;
+            box.textContent = message;
+        }
+
+        function clearOfferStatus() {
+            const box = document.getElementById('offerStatus');
+            box.className = 'offer-status';
+            box.textContent = '';
+        }
+
+        function openShareOfferModal(book) {
+            selectedShareBook = book;
+            document.getElementById('shareSelectedBookLabel').textContent = `${book.title} by ${book.author || 'Unknown author'}`;
+            document.getElementById('shareOfferForm').reset();
+            clearOfferStatus();
+            document.getElementById('shareOfferModal').style.display = 'block';
+        }
+
+        function closeShareOfferModal() {
+            document.getElementById('shareOfferModal').style.display = 'none';
+            selectedShareBook = null;
+        }
+
+        async function createOfferForBook(payload) {
+            const response = await fetch('/offers', {
+                method: 'POST',
+                headers: getAuthHeaders(true),
+                body: JSON.stringify(payload)
+            });
+
+            let data = null;
+            try {
+                data = await response.json();
+            } catch (_) {
+                data = null;
+            }
+
+            if (!response.ok) {
+                throw new Error((data && data.message) ? data.message : 'Failed to create offer.');
+            }
+
+            return data;
+        }
+
+        async function uploadOfferImages(offerId, files) {
+            if (!files || files.length === 0) {
+                return;
+            }
+
+            const formData = new FormData();
+            Array.from(files).forEach((file) => formData.append('files', file));
+
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+            const response = await fetch(`/offers/${offerId}/images`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+
+            if (!response.ok) {
+                let message = 'Offer created, but image upload failed.';
+                try {
+                    const payload = await response.json();
+                    if (payload && payload.message) {
+                        message = payload.message;
+                    }
+                } catch (_) {
+                    // keep default message
+                }
+                throw new Error(message);
+            }
+        }
+
+        function showBookDetails(book) {
+            const modalBody = document.getElementById('modalBody');
+            
+            const genresHTML = book.genres 
+                ? `<p>${escapeHtml(book.genres)}</p>`
+                : '<p>No genres available</p>';
+
+            const charactersHTML = book.characters
+                ? `<p>${escapeHtml(book.characters)}</p>`
+                : '<p>No character information</p>';
+
+            const awardsHTML = book.awards
+                ? `<p>${escapeHtml(book.awards)}</p>`
+                : '<p>No awards information</p>';
+
+            modalBody.innerHTML = `
+                <div class="book-detail-title">${escapeHtml(book.title)}</div>
+                <div class="book-detail-author">by ${escapeHtml(book.author)}</div>
+
+                ${book.coverImg ? `<div style="margin-bottom: 20px;"><img src="${book.coverImg}" alt="${book.title}" style="max-width: 100%; max-height: 300px;"></div>` : ''}
+
+                <div class="book-detail-section">
+                    <label>Description:</label>
+                    <p>${escapeHtml(book.description || 'No description available')}</p>
+                </div>
+
+                ${book.series ? `
+                <div class="book-detail-section">
+                    <label>Series:</label>
+                    <p>${escapeHtml(book.series)}</p>
+                </div>
+                ` : ''}
+
+                <div class="book-detail-section">
+                    <label>Rating:</label>
+                    <p>${book.rating ? `⭐ ${book.rating} / 5.0` : 'Not rated'}</p>
+                </div>
+
+                <div class="book-detail-section">
+                    <label>ISBN:</label>
+                    <p>${book.isbn || 'Not available'}</p>
+                </div>
+
+                <div class="book-detail-section">
+                    <label>Language:</label>
+                    <p>${book.language || 'Unknown'}</p>
+                </div>
+
+                ${book.pages ? `
+                <div class="book-detail-section">
+                    <label>Pages:</label>
+                    <p>${book.pages}</p>
+                </div>
+                ` : ''}
+
+                ${book.firstPublishDate ? `
+                <div class="book-detail-section">
+                    <label>First Published:</label>
+                    <p>${book.firstPublishDate}</p>
+                </div>
+                ` : ''}
+
+                <div class="book-detail-section">
+                    <label>Genres:</label>
+                    ${genresHTML}
+                </div>
+
+                <div class="book-detail-section">
+                    <label>Characters:</label>
+                    ${charactersHTML}
+                </div>
+
+                <div class="book-detail-section">
+                    <label>Awards:</label>
+                    ${awardsHTML}
+                </div>
+            `;
+
+            document.getElementById('bookModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('bookModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('bookModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+
+            const shareModal = document.getElementById('shareOfferModal');
+            if (event.target === shareModal) {
+                closeShareOfferModal();
+            }
+        }
+
+        function searchBooks() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                displayBooks(allBooks);
+                document.getElementById('filteredStats').style.display = 'none';
+                return;
+            }
+
+            const filtered = allBooks.filter(book => {
+                const title = (book.title || '').toLowerCase();
+                const author = (book.author || '').toLowerCase();
+                const description = (book.description || '').toLowerCase();
+                
+                return title.includes(searchTerm) || 
+                       author.includes(searchTerm) || 
+                       description.includes(searchTerm);
+            });
+
+            displayBooks(filtered);
+            document.getElementById('filteredCount').textContent = filtered.length;
+            document.getElementById('filteredStats').style.display = 'inline';
+        }
+
+        function resetSearch() {
+            document.getElementById('searchInput').value = '';
+            displayBooks(allBooks);
+            document.getElementById('filteredStats').style.display = 'none';
+        }
+
+        // Allow search on Enter key
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchBooks();
+                }
+            });
+
+            document.getElementById('booksContainer').addEventListener('click', function(e) {
+                const shareBtn = e.target.closest('[data-share-book-id]');
+                if (!shareBtn) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const bookId = shareBtn.getAttribute('data-share-book-id');
+                const selected = allBooks.find((book) => String(book.bookId) === String(bookId));
+                if (selected) {
+                    openShareOfferModal(selected);
+                }
+            });
+
+            document.getElementById('closeShareOfferModal').addEventListener('click', closeShareOfferModal);
+            document.getElementById('cancelShareOfferBtn').addEventListener('click', closeShareOfferModal);
+
+            document.getElementById('shareOfferForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                clearOfferStatus();
+
+                if (!selectedShareBook) {
+                    setOfferStatus('error', 'No book selected to share.');
+                    return;
+                }
+
+                const condition = document.getElementById('offerCondition').value;
+                if (!condition) {
+                    setOfferStatus('error', 'Please select a condition.');
+                    return;
+                }
+
+                const submitBtn = document.getElementById('submitShareOfferBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+
+                try {
+                    const payload = {
+                        bookId: selectedShareBook.bookId,
+                        condition,
+                        note: document.getElementById('offerNote').value.trim()
+                    };
+
+                    const created = await createOfferForBook(payload);
+                    if (!created || !created.id) {
+                        throw new Error('Offer created but missing offer ID in response.');
+                    }
+
+                    const images = document.getElementById('offerImages').files;
+                    await uploadOfferImages(created.id, images);
+
+                    setOfferStatus('success', 'Offer created successfully. Redirecting to My Offers...');
+                    setTimeout(() => {
+                        window.location.href = '/my-offers';
+                    }, 800);
+                } catch (error) {
+                    setOfferStatus('error', error.message || 'Failed to create offer.');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Offer';
+                }
+            });
+        });
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>

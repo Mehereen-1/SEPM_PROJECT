@@ -39,7 +39,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers(
                     "/",
-                    "/login",
+                    "/browse", "/books/browse", "/login",
                     "/register",
                     "/auth/**",
                     "/login.html",
@@ -52,7 +52,7 @@ public class SecurityConfig {
                     "/css/**",
                     "/images/**",
                     "/error"
-                ).permitAll()
+                , "/uploads/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // Role-based access for dashboards - support multiple role names for compatibility
                 .requestMatchers("/reader/**").hasAnyRole("BOOK_FRIEND", "USER", "READER")
