@@ -1,14 +1,15 @@
 package com.example.project.repository;
 
-import com.example.project.entity.DeliveryOffer;
-import com.example.project.entity.DeliveryOfferStatus;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.example.project.entity.DeliveryOffer;
+import com.example.project.entity.DeliveryOfferStatus;
 
 @Repository
 public interface DeliveryOfferRepository extends JpaRepository<DeliveryOffer, Long> {
@@ -59,6 +60,23 @@ public interface DeliveryOfferRepository extends JpaRepository<DeliveryOffer, Lo
     List<DeliveryOffer> findByAssigneeAndStatusWithDetails(
         @Param("deliveryPartnerId") Long deliveryPartnerId,
         @Param("status") DeliveryOfferStatus status
+    );
+
+    @Query("""
+        select d
+        from DeliveryOffer d
+        join fetch d.exchangeRequest er
+        join fetch er.requesterOffer ro
+        join fetch ro.user ru
+        join fetch er.targetOffer toff
+        join fetch toff.user tu
+        left join fetch d.assignedDeliveryPartner adp
+        where d.assignedDeliveryPartner.id = :deliveryPartnerId and d.status in :statuses
+        order by d.acceptedAt desc, d.createdAt desc
+        """)
+    List<DeliveryOffer> findByAssigneeAndStatusesWithDetails(
+        @Param("deliveryPartnerId") Long deliveryPartnerId,
+        @Param("statuses") List<DeliveryOfferStatus> statuses
     );
 
     @Query("""

@@ -1,5 +1,7 @@
 package com.example.project.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,8 +15,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(
@@ -50,6 +50,12 @@ public class DeliveryOffer {
 
     @Column
     private LocalDateTime acceptedAt;
+
+    @Column
+    private LocalDateTime pickupStartedAt;
+
+    @Column
+    private LocalDateTime bookPickedAt;
 
     @Column
     private LocalDateTime completedAt;
@@ -124,5 +130,21 @@ public class DeliveryOffer {
 
     public void setCompletedAt(LocalDateTime completedAt) {
         this.completedAt = completedAt;
+    }
+
+    public LocalDateTime getPickupStartedAt() {
+        return pickupStartedAt;
+    }
+
+    public void setPickupStartedAt(LocalDateTime pickupStartedAt) {
+        this.pickupStartedAt = pickupStartedAt;
+    }
+
+    public LocalDateTime getBookPickedAt() {
+        return bookPickedAt;
+    }
+
+    public void setBookPickedAt(LocalDateTime bookPickedAt) {
+        this.bookPickedAt = bookPickedAt;
     }
 }
