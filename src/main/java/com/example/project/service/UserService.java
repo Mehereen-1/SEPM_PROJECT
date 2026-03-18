@@ -1,5 +1,6 @@
 package com.example.project.service;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +38,30 @@ public class UserService {
 
     @Transactional
     public User registerUser(String name, String email, String password, String roleName) {
+        return registerUser(name, email, password, roleName, null, null, null);
+    }
+
+    @Transactional
+    public User registerUser(String firstName, String lastName, String email, String password, String roleName,
+                             String gender, LocalDate dateOfBirth, String phoneNumber1, String phoneNumber2,
+                             Double latitude, Double longitude, String address) {
+        String combinedName = ((firstName == null ? "" : firstName.trim()) + " " + (lastName == null ? "" : lastName.trim())).trim();
+        if (combinedName.isBlank()) {
+            combinedName = email != null ? email.split("@")[0] : "user";
+        }
+
+        User savedUser = registerUser(combinedName, email, password, roleName, latitude, longitude, address);
+        savedUser.setFirstName(firstName != null ? firstName.trim() : null);
+        savedUser.setLastName(lastName != null ? lastName.trim() : null);
+        savedUser.setGender(gender);
+        savedUser.setDateOfBirth(dateOfBirth);
+        savedUser.setPhoneNumber1(phoneNumber1);
+        savedUser.setPhoneNumber2(phoneNumber2);
+        return userRepository.save(savedUser);
+    }
+
+    @Transactional
+    public User registerUser(String name, String email, String password, String roleName, Double latitude, Double longitude, String address) {
         String normalizedEmail = normalizeEmail(email);
         if (normalizedEmail == null || normalizedEmail.isBlank()) {
             throw new RuntimeException("Email is required");
@@ -62,6 +87,9 @@ public class UserService {
         user.setName(name);
         user.setEmail(normalizedEmail);
         user.setPassword(passwordEncoder.encode(password));
+        user.setLatitude(latitude);
+        user.setLongitude(longitude);
+        user.setAddress(address);
         user.setRoles(Collections.singleton(userRole));
         
         User savedUser = userRepository.save(user);
@@ -69,6 +97,59 @@ public class UserService {
         System.out.println("========================");
         
         return savedUser;
+    }
+
+    @Transactional
+    public User updateProfile(User user, String fullName, Double latitude, Double longitude, String address) {
+        if (user == null) {
+            throw new IllegalArgumentException("User is required");
+        }
+
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            user.setName(fullName.trim());
+        }
+
+        if (latitude != null) {
+            user.setLatitude(latitude);
+        }
+        if (longitude != null) {
+            user.setLongitude(longitude);
+        }
+        if (address != null && !address.isBlank()) {
+            user.setAddress(address.trim());
+        }
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updateProfile(User user, String firstName, String lastName, String gender, LocalDate dateOfBirth,
+                              String phoneNumber1, String phoneNumber2, Double latitude, Double longitude, String address) {
+        if (user == null) {
+            throw new IllegalArgumentException("User is required");
+        }
+
+        user.setFirstName(firstName != null ? firstName.trim() : null);
+        user.setLastName(lastName != null ? lastName.trim() : null);
+        user.setGender(gender);
+        user.setDateOfBirth(dateOfBirth);
+        user.setPhoneNumber1(phoneNumber1);
+        user.setPhoneNumber2(phoneNumber2);
+
+        String fullName = ((firstName == null ? "" : firstName.trim()) + " " + (lastName == null ? "" : lastName.trim())).trim();
+        if (!fullName.isBlank()) {
+            user.setName(fullName);
+        }
+
+        if (latitude != null) {
+            user.setLatitude(latitude);
+        }
+        if (longitude != null) {
+            user.setLongitude(longitude);
+        }
+        if (address != null && !address.isBlank()) {
+            user.setAddress(address.trim());
+        }
+        return userRepository.save(user);
     }
 
     private String normalizeEmail(String email) {

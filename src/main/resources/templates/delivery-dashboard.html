@@ -72,7 +72,7 @@
 
                         <a th:href="@{/delivery/location/{id}(id=${offer.id})}" class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
                             <span class="material-symbols-rounded text-base">place</span>
-                            Find Delivery Location
+                            Show Map
                         </a>
 
                         <form th:if="${showCompleteButton}" th:action="@{/delivery/complete/{id}(id=${offer.id})}" method="post" class="w-full">
@@ -97,7 +97,7 @@
 
     <script>
         (function () {
-            const RATE_PER_KM = 7.5;
+            const RATE_PER_KM = 2.0;
             const feeNodes = document.querySelectorAll('.js-fee');
 
             feeNodes.forEach(function (node) {

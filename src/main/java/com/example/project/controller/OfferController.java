@@ -1,30 +1,5 @@
 package com.example.project.controller;
 
-import com.example.project.entity.Book;
-import com.example.project.entity.Offer;
-import com.example.project.entity.OfferImage;
-import com.example.project.entity.OfferStatus;
-import com.example.project.entity.User;
-import com.example.project.repository.BookRepository;
-import com.example.project.repository.OfferImageRepository;
-import com.example.project.repository.OfferRepository;
-import com.example.project.repository.UserRepository;
-import com.example.project.security.SecurityUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,6 +13,32 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.example.project.entity.Book;
+import com.example.project.entity.Offer;
+import com.example.project.entity.OfferImage;
+import com.example.project.entity.OfferStatus;
+import com.example.project.entity.User;
+import com.example.project.repository.BookRepository;
+import com.example.project.repository.OfferImageRepository;
+import com.example.project.repository.OfferRepository;
+import com.example.project.repository.UserRepository;
+import com.example.project.security.SecurityUtil;
 
 @RestController
 @RequestMapping("/offers")
@@ -71,6 +72,8 @@ public class OfferController {
 
         List<OfferImage> allImages = offerImageRepository.findByOfferIdIn(offerIds);
         Map<Long, List<String>> imageUrlsByOfferId = new HashMap<>();
+        Optional<User> currentUser = getCurrentUser();
+        User current = currentUser.orElse(null);
 
         for (OfferImage image : allImages) {
             Long imageOfferId = image.getOffer().getId();
@@ -86,7 +89,14 @@ public class OfferController {
                 offer.getUser().getName(),
                 offer.getCondition(),
                 offer.getNote(),
-                imageUrlsByOfferId.getOrDefault(offer.getId(), List.of())
+                imageUrlsByOfferId.getOrDefault(offer.getId(), List.of()),
+                offer.getUser().getLatitude(),
+                offer.getUser().getLongitude(),
+                offer.getUser().getAddress(),
+                current != null ? current.getLatitude() : null,
+                current != null ? current.getLongitude() : null,
+                current != null ? current.getAddress() : null,
+                current != null ? current.getName() : null
             ))
             .collect(Collectors.toList());
 
@@ -384,7 +394,14 @@ public class OfferController {
             String ownerName,
             String condition,
             String note,
-            List<String> imageUrls
+            List<String> imageUrls,
+            Double ownerLatitude,
+            Double ownerLongitude,
+            String ownerAddress,
+            Double currentUserLatitude,
+            Double currentUserLongitude,
+            String currentUserAddress,
+            String currentUserName
         ) {
         }
 

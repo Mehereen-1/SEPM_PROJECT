@@ -1,5 +1,22 @@
 package com.example.project.controller;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import com.example.project.entity.DeliveryOffer;
 import com.example.project.entity.DeliveryOfferStatus;
 import com.example.project.entity.ExchangeRequest;
@@ -9,17 +26,7 @@ import com.example.project.repository.DeliveryOfferRepository;
 import com.example.project.repository.ExchangeRequestRepository;
 import com.example.project.repository.UserRepository;
 import com.example.project.security.SecurityUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import com.example.project.service.DeliveryPricingService;
 
 @Controller
 public class DeliveryDashboardController {
@@ -35,6 +42,12 @@ public class DeliveryDashboardController {
 
     @Autowired
     private SecurityUtil securityUtil;
+
+    @Autowired
+    private DeliveryPricingService deliveryPricingService;
+
+    private static final double DEFAULT_LAT = 23.8103;
+    private static final double DEFAULT_LNG = 90.4125;
 
     @GetMapping("/delivery/dashboard")
     public String deliveryDashboard(Model model) {
@@ -144,17 +157,93 @@ public class DeliveryDashboardController {
     }
 
     @GetMapping("/delivery/location/{id}")
-    public String findLocation(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        if (deliveryOfferRepository.findById(id).isEmpty()) {
+    public String findLocation(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        Optional<DeliveryOffer> offerResult = deliveryOfferRepository.findByIdWithDetails(id);
+        if (offerResult.isEmpty()) {
             redirectAttributes.addFlashAttribute("deliveryMessage", "Delivery offer not found.");
             return "redirect:/delivery/offers";
         }
 
-        redirectAttributes.addFlashAttribute(
-            "deliveryMessage",
-            "Location tracking is not available yet for this task. This will be connected to map coordinates in the next iteration."
-        );
-        return "redirect:/delivery/offers";
+        DeliveryOffer offer = offerResult.get();
+        User sender = offer.getExchangeRequest().getRequesterOffer().getUser();
+        User receiver = offer.getExchangeRequest().getTargetOffer().getUser();
+
+        Coordinate senderCoordinate = resolveCoordinate(sender);
+        Coordinate receiverCoordinate = resolveCoordinate(receiver);
+
+        Double distanceKm = offer.getDistanceKm();
+        if (distanceKm == null) {
+            distanceKm = deliveryPricingService.estimateDistanceKm(
+                senderCoordinate.latitude(),
+                senderCoordinate.longitude(),
+                receiverCoordinate.latitude(),
+                receiverCoordinate.longitude()
+            );
+        }
+        Double deliveryCost = deliveryPricingService.calculateCost(distanceKm);
+
+        model.addAttribute("deliveryOffer", offer);
+        model.addAttribute("senderName", sender.getName());
+        model.addAttribute("receiverName", receiver.getName());
+        model.addAttribute("senderLat", senderCoordinate.latitude());
+        model.addAttribute("senderLng", senderCoordinate.longitude());
+        model.addAttribute("receiverLat", receiverCoordinate.latitude());
+        model.addAttribute("receiverLng", receiverCoordinate.longitude());
+        model.addAttribute("senderAddress", sender.getAddress());
+        model.addAttribute("receiverAddress", receiver.getAddress());
+        model.addAttribute("distanceKm", distanceKm);
+        model.addAttribute("deliveryCost", deliveryCost);
+        model.addAttribute("hasExactSenderLocation", sender.getLatitude() != null && sender.getLongitude() != null);
+        model.addAttribute("hasExactReceiverLocation", receiver.getLatitude() != null && receiver.getLongitude() != null);
+        model.addAttribute("fallbackLat", DEFAULT_LAT);
+        model.addAttribute("fallbackLng", DEFAULT_LNG);
+
+        // Keep stored values in sync if we calculated estimates server-side.
+        if (offer.getDistanceKm() == null || offer.getDeliveryFee() == null) {
+            offer.setDistanceKm(distanceKm);
+            offer.setDeliveryFee(deliveryCost);
+            deliveryOfferRepository.save(offer);
+        }
+
+        return "delivery-map";
+    }
+
+    @GetMapping("/delivery/location-data/{id}")
+    @ResponseBody
+    public Map<String, Object> locationData(@PathVariable Long id) {
+        DeliveryOffer offer = deliveryOfferRepository.findByIdWithDetails(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Delivery offer not found"));
+
+        User sender = offer.getExchangeRequest().getRequesterOffer().getUser();
+        User receiver = offer.getExchangeRequest().getTargetOffer().getUser();
+
+        Coordinate senderCoordinate = resolveCoordinate(sender);
+        Coordinate receiverCoordinate = resolveCoordinate(receiver);
+        Double distanceKm = offer.getDistanceKm() != null
+            ? offer.getDistanceKm()
+            : deliveryPricingService.estimateDistanceKm(
+                senderCoordinate.latitude(),
+                senderCoordinate.longitude(),
+                receiverCoordinate.latitude(),
+                receiverCoordinate.longitude()
+            );
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("senderLat", senderCoordinate.latitude());
+        payload.put("senderLng", senderCoordinate.longitude());
+        payload.put("receiverLat", receiverCoordinate.latitude());
+        payload.put("receiverLng", receiverCoordinate.longitude());
+        payload.put("distanceKm", distanceKm);
+        payload.put("cost", deliveryPricingService.calculateCost(distanceKm));
+        return payload;
+    }
+
+    private Coordinate resolveCoordinate(User user) {
+        if (user == null || user.getLatitude() == null || user.getLongitude() == null) {
+            return new Coordinate(DEFAULT_LAT, DEFAULT_LNG);
+        }
+
+        return new Coordinate(user.getLatitude(), user.getLongitude());
     }
 
     private void populateModel(
@@ -236,6 +325,12 @@ public class DeliveryDashboardController {
         Double distanceKm,
         String status,
         String assignedDeliveryPartnerName
+    ) {
+    }
+
+    record Coordinate(
+        Double latitude,
+        Double longitude
     ) {
     }
 }

@@ -156,6 +156,12 @@ document.addEventListener('DOMContentLoaded', () => {
           : '<div class="gallery-empty">No Photo</div>';
 
         const note = offer.note && offer.note.trim() ? offer.note : 'No note provided.';
+        const hasCurrentLocation = Number.isFinite(Number(offer.currentUserLatitude)) && Number.isFinite(Number(offer.currentUserLongitude));
+        const hasOwnerLocation = Number.isFinite(Number(offer.ownerLatitude)) && Number.isFinite(Number(offer.ownerLongitude));
+        const canOpenMap = hasCurrentLocation && hasOwnerLocation;
+        const mapHint = canOpenMap
+          ? 'See route, distance, and delivery cost.'
+          : 'Location not available for this user';
 
         return `
           <article class="offer-card">
@@ -175,9 +181,24 @@ document.addEventListener('DOMContentLoaded', () => {
               <button class="exchange-btn" data-target-offer-id="${escapeHtml(offer.offerId)}" ${disableActions ? 'disabled' : ''}>
                 Send Exchange Request
               </button>
+              <button
+                class="map-route-btn"
+                data-action="show-map"
+                data-owner-name="${escapeHtml(offer.ownerName || 'Offer Owner')}"
+                data-owner-address="${escapeHtml(offer.ownerAddress || '')}"
+                data-owner-lat="${escapeHtml(offer.ownerLatitude)}"
+                data-owner-lng="${escapeHtml(offer.ownerLongitude)}"
+                data-current-name="${escapeHtml(offer.currentUserName || 'You')}"
+                data-current-address="${escapeHtml(offer.currentUserAddress || '')}"
+                data-current-lat="${escapeHtml(offer.currentUserLatitude)}"
+                data-current-lng="${escapeHtml(offer.currentUserLongitude)}"
+                ${canOpenMap ? '' : 'disabled'}>
+                Show Map & Cost
+              </button>
               <div class="exchange-note">
                 ${disableActions ? 'Create an active offer first to request exchanges.' : 'Choose one of your active offers and request this book.'}
               </div>
+              <div class="exchange-note">${escapeHtml(mapHint)}</div>
             </div>
           </article>
         `;
@@ -334,6 +355,51 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   offersContainer.addEventListener('click', async (event) => {
+    const mapButton = event.target.closest('.map-route-btn');
+    if (mapButton) {
+      const currentLat = Number(mapButton.getAttribute('data-current-lat'));
+      const currentLng = Number(mapButton.getAttribute('data-current-lng'));
+      const ownerLat = Number(mapButton.getAttribute('data-owner-lat'));
+      const ownerLng = Number(mapButton.getAttribute('data-owner-lng'));
+
+      if (!Number.isFinite(currentLat) || !Number.isFinite(currentLng) || !Number.isFinite(ownerLat) || !Number.isFinite(ownerLng)) {
+        showBanner('error', 'Location not available for this user');
+        return;
+      }
+
+      if (!window.openRouteMap) {
+        showBanner('error', 'Map service is unavailable right now.');
+        return;
+      }
+
+      try {
+        await window.openRouteMap(
+          currentLat,
+          currentLng,
+          ownerLat,
+          ownerLng,
+          mapButton.getAttribute('data-owner-address') || null,
+          {
+            modalId: 'routeMapModal',
+            mapId: 'routeMapCanvas',
+            titleId: 'routeMapTitle',
+            routeStatusId: 'routeStatus',
+            distanceValueId: 'distanceValue',
+            costValueId: 'costValue',
+            senderAddressId: 'senderAddress',
+            receiverAddressId: 'receiverAddress',
+            currentUserName: mapButton.getAttribute('data-current-name') || 'You',
+            currentUserAddress: mapButton.getAttribute('data-current-address') || null,
+            otherUserName: mapButton.getAttribute('data-owner-name') || 'Offer Owner',
+            title: 'Exchange Route Map & Cost'
+          }
+        );
+      } catch (error) {
+        showBanner('error', error.message || 'Failed to open map.');
+      }
+      return;
+    }
+
     const button = event.target.closest('.exchange-btn');
     if (!button) {
       return;
