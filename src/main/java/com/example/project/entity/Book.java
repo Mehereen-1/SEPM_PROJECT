@@ -36,6 +36,12 @@ public class Book {
     
     @Column(length = 50)
     private String isbn;
+
+    @Column
+    private String publisher;
+
+    @Column
+    private Integer publicationYear;
     
     @Column(columnDefinition = "TEXT")
     private String genres;

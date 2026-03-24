@@ -3,6 +3,7 @@ package com.example.project.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -54,6 +55,7 @@ public class SecurityConfig {
                     "/error"
                 , "/uploads/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/books").hasRole("ADMIN")
                 // Role-based access for dashboards - support multiple role names for compatibility
                 .requestMatchers("/reader/**").hasAnyRole("BOOK_FRIEND", "USER", "READER")
                 .requestMatchers("/delivery/**").hasAnyRole("DELIVERY_PARTNER", "DELIVERY")

@@ -50,6 +50,10 @@ public class BookService {
         book.setBookId(UUID.randomUUID().toString());
         return Optional.of(bookRepository.save(book));
     }
+
+    public boolean isDuplicateBookForAnotherRecord(String title, String author, String existingBookId) {
+        return bookRepository.existsByTitleIgnoreCaseAndAuthorIgnoreCaseAndBookIdNot(title, author, existingBookId);
+    }
     
     /**
      * Delete a book by ID

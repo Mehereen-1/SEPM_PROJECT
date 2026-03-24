@@ -23,6 +23,19 @@ public interface ExchangeRequestRepository extends JpaRepository<ExchangeRequest
         join fetch er.targetOffer toff
         join fetch toff.user tu
         join fetch toff.book tb
+        order by er.createdAt desc
+        """)
+    List<ExchangeRequest> findAllWithDetails();
+
+    @Query("""
+        select er
+        from ExchangeRequest er
+        join fetch er.requesterOffer ro
+        join fetch ro.user ru
+        join fetch ro.book rb
+        join fetch er.targetOffer toff
+        join fetch toff.user tu
+        join fetch toff.book tb
         where ro.user.id = :userId
         order by er.createdAt desc
         """)
