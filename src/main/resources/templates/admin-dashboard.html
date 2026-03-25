@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - BookSwap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/styles/admin-dashboard.css}">
+</head>
+<body>
+<div class="admin-shell">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <span class="brand-badge">BS</span>
+            <div>
+                <p class="brand-name">BookSwap</p>
+                <p class="brand-sub">Admin Console</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Admin navigation">
+            <button class="nav-link is-active" data-section="dashboard">Dashboard</button>
+            <button class="nav-link" data-section="books">Books</button>
+            <button class="nav-link" data-section="offers">Offers</button>
+            <button class="nav-link" data-section="exchangeRequests">Exchange Requests</button>
+            <button class="nav-link" data-section="users">Users</button>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <header class="topbar">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">Menu</button>
+            <div class="topbar-title">
+                <h1>Admin Dashboard</h1>
+                <p>Moderate books, offers, exchange requests, and users.</p>
+            </div>
+            <div class="topbar-actions">
+                <div class="admin-pill" id="adminName" th:text="${adminName}">Admin</div>
+                <form th:action="@{/logout}" method="post">
+                    <button type="submit" class="btn logout-btn">Logout</button>
+                </form>
+            </div>
+        </header>
+
+        <section class="panel is-visible" id="panel-dashboard">
+            <div class="panel-card">
+                <div class="panel-head">
+                    <h2>Platform Overview</h2>
+                    <button class="btn ghost" id="refreshDashboard">Refresh</button>
+                </div>
+                <div class="stats-grid">
+                    <article class="stat-card">
+                        <p>Total Books</p>
+                        <h3 id="statBooks">0</h3>
+                    </article>
+                    <article class="stat-card">
+                        <p>Total Offers</p>
+                        <h3 id="statOffers">0</h3>
+                    </article>
+                    <article class="stat-card">
+                        <p>Exchange Requests</p>
+                        <h3 id="statExchangeRequests">0</h3>
+                    </article>
+                    <article class="stat-card">
+                        <p>Total Users</p>
+                        <h3 id="statUsers">0</h3>
+                    </article>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Section</th>
+                            <th>Record Count</th>
+                            <th>Last Refresh</th>
+                        </tr>
+                        </thead>
+                        <tbody id="dashboardSummaryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" id="panel-books">
+            <div class="panel-card">
+                <div class="panel-head">
+                    <h2>Books</h2>
+                    <button class="btn primary" id="addBookBtn">Add Book</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Year</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="booksTableBody"></tbody>
+                    </table>
+                </div>
+                <p class="empty-state" id="booksEmpty" hidden>No books found.</p>
+            </div>
+        </section>
+
+        <section class="panel" id="panel-offers">
+            <div class="panel-card">
+                <div class="panel-head">
+                    <h2>Offers</h2>
+                    <button class="btn ghost" id="refreshOffers">Refresh</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Owner</th>
+                            <th>Condition</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="offersTableBody"></tbody>
+                    </table>
+                </div>
+                <p class="empty-state" id="offersEmpty" hidden>No offers available.</p>
+            </div>
+        </section>
+
+        <section class="panel" id="panel-exchangeRequests">
+            <div class="panel-card">
+                <div class="panel-head">
+                    <h2>Exchange Requests</h2>
+                    <button class="btn ghost" id="refreshExchangeRequests">Refresh</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Requester</th>
+                            <th>Target Book</th>
+                            <th>Status</th>
+                            <th>Created At</th>
+                        </tr>
+                        </thead>
+                        <tbody id="exchangeRequestsTableBody"></tbody>
+                    </table>
+                </div>
+                <p class="empty-state" id="exchangeRequestsEmpty" hidden>No exchange requests found.</p>
+            </div>
+        </section>
+
+        <section class="panel" id="panel-users">
+            <div class="panel-card">
+                <div class="panel-head">
+                    <h2>Users</h2>
+                    <button class="btn ghost" id="refreshUsers">Refresh</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
+                <p class="empty-state" id="usersEmpty" hidden>No users found.</p>
+            </div>
+        </section>
+    </main>
+</div>
+
+<div class="modal" id="bookModal" aria-hidden="true">
+    <div class="modal-card">
+        <h3 id="bookModalTitle">Add Book</h3>
+        <form id="bookForm">
+            <input type="hidden" id="bookId">
+            <label>Title <input type="text" id="bookTitle" required></label>
+            <label>Author <input type="text" id="bookAuthor" required></label>
+            <label>Year <input type="number" id="bookYear" min="1000" max="2999"></label>
+            <label>ISBN <input type="text" id="bookIsbn"></label>
+            <label>Description <textarea id="bookDescription" rows="3"></textarea></label>
+            <div class="modal-actions">
+                <button type="button" class="btn ghost" id="cancelBookModal">Cancel</button>
+                <button type="submit" class="btn primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script th:src="@{/js/admin-dashboard.js}"></script>
+</body>
+</html>

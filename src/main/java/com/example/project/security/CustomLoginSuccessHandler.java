@@ -27,6 +27,12 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
         for (GrantedAuthority authority : authentication.getAuthorities()) {
             String role = authority.getAuthority();
             System.out.println("  - Checking: '" + role + "'");
+
+            if ("ROLE_ADMIN".equals(role)) {
+                redirectUrl = "/admin/dashboard";
+                System.out.println("  ✓ MATCHED ADMIN");
+                break;
+            }
             
             if ("ROLE_DELIVERY_PARTNER".equals(role) || "ROLE_DELIVERY".equals(role)) {
                 redirectUrl = "/delivery/dashboard";

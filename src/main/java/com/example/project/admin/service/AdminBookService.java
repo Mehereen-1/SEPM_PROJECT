@@ -1,43 +1,32 @@
-package com.example.project.controller;
+package com.example.project.admin.service;
 
+import com.example.project.admin.dto.BookAdminRequest;
+import com.example.project.admin.dto.BookAdminResponse;
 import com.example.project.entity.Book;
 import com.example.project.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@RestController
-@RequestMapping("/admin/books")
-@PreAuthorize("hasRole('ADMIN')")
-public class AdminBookController {
+@Service
+public class AdminBookService implements IAdminBookService {
 
     @Autowired
     private BookService bookService;
 
-    @GetMapping
-    public ResponseEntity<List<BookAdminResponse>> getAllBooks() {
-        List<BookAdminResponse> books = bookService.getAllBooks()
+    public List<BookAdminResponse> getAllBooks() {
+        return bookService.getAllBooks()
             .stream()
             .map(this::toResponse)
             .toList();
-        return ResponseEntity.ok(books);
     }
 
-    @PostMapping
-    public ResponseEntity<?> createBook(@RequestBody BookAdminRequest request) {
+    public ResponseEntity<?> createBook(BookAdminRequest request) {
         String title = normalize(request.title());
         String author = normalize(request.author());
 
@@ -60,8 +49,7 @@ public class AdminBookController {
                 .body(Map.of("message", "A book with the same title and author already exists.")));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateBook(@PathVariable String id, @RequestBody BookAdminRequest request) {
+    public ResponseEntity<?> updateBook(String id, BookAdminRequest request) {
         Optional<Book> existingResult = bookService.getBookById(id);
         if (existingResult.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -93,8 +81,7 @@ public class AdminBookController {
         return ResponseEntity.ok(toResponse(saved));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteBook(@PathVariable String id) {
+    public ResponseEntity<?> deleteBook(String id) {
         Optional<Book> existingResult = bookService.getBookById(id);
         if (existingResult.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -123,26 +110,5 @@ public class AdminBookController {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
-    }
-
-    record BookAdminRequest(
-        String title,
-        String author,
-        String isbn,
-        String publisher,
-        Integer publicationYear,
-        String description
-    ) {
-    }
-
-    record BookAdminResponse(
-        String id,
-        String title,
-        String author,
-        String isbn,
-        String publisher,
-        Integer publicationYear,
-        String description
-    ) {
     }
 }

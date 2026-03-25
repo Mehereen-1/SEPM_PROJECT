@@ -1,5 +1,6 @@
-package com.example.project.controller;
+package com.example.project.admin.service;
 
+import com.example.project.admin.dto.AdminOfferResponse;
 import com.example.project.entity.Offer;
 import com.example.project.entity.OfferStatus;
 import com.example.project.repository.OfferImageRepository;
@@ -7,23 +8,14 @@ import com.example.project.repository.OfferRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@RestController
-@RequestMapping("/admin/offers")
-@PreAuthorize("hasRole('ADMIN')")
-public class AdminOfferController {
+@Service
+public class AdminOfferService implements IAdminOfferService {
 
     @Autowired
     private OfferRepository offerRepository;
@@ -31,18 +23,14 @@ public class AdminOfferController {
     @Autowired
     private OfferImageRepository offerImageRepository;
 
-    @GetMapping
-    public ResponseEntity<List<AdminOfferResponse>> getAllOffers() {
-        List<AdminOfferResponse> offers = offerRepository.findAllWithDetails()
+    public List<AdminOfferResponse> getAllOffers() {
+        return offerRepository.findAllWithDetails()
             .stream()
             .map(this::toResponse)
             .toList();
-
-        return ResponseEntity.ok(offers);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteOffer(@PathVariable Long id) {
+    public ResponseEntity<?> deleteOffer(Long id) {
         Optional<Offer> offerResult = offerRepository.findById(id);
         if (offerResult.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -59,8 +47,7 @@ public class AdminOfferController {
         }
     }
 
-    @PutMapping("/{id}/block")
-    public ResponseEntity<?> blockOffer(@PathVariable Long id) {
+    public ResponseEntity<?> blockOffer(Long id) {
         Optional<Offer> offerResult = offerRepository.findById(id);
         if (offerResult.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -83,15 +70,5 @@ public class AdminOfferController {
             offer.getStatus().name(),
             offer.getCreatedAt()
         );
-    }
-
-    record AdminOfferResponse(
-        Long offerId,
-        String bookTitle,
-        String ownerName,
-        String condition,
-        String status,
-        LocalDateTime createdAt
-    ) {
     }
 }

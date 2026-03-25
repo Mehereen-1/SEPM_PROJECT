@@ -41,6 +41,8 @@ public class CustomUserDetailsService implements UserDetailsService {
             System.out.println("WARNING: User has no roles! Defaulting to ROLE_BOOK_FRIEND");
             authorities.add(new SimpleGrantedAuthority("ROLE_BOOK_FRIEND"));
         }
+
+        boolean enabled = !Boolean.FALSE.equals(user.getActive());
         
         System.out.println("Final Authorities: " + authorities);
         System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@");
@@ -48,7 +50,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
-                authorities
+            enabled,
+            true,
+            true,
+            true,
+            authorities
         );
     }
 }
