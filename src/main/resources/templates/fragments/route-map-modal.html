@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="routeMapModal" id="routeMapModal" class="hidden route-map-modal">
+    <div class="route-map-backdrop" data-route-map-close="true"></div>
+
+    <section class="route-map-panel">
+        <div class="route-map-header">
+            <div>
+                <h2 id="routeMapTitle" class="route-map-title">Exchange Route Map &amp; Cost</h2>
+                <p class="route-map-subtitle">Live route between your location and offer owner using OpenStreetMap + OSRM.</p>
+            </div>
+            <button type="button" class="route-map-close-btn" data-route-map-close="true">
+                Close
+            </button>
+        </div>
+
+        <div id="routeStatus" class="route-map-status">
+            Loading route from OSRM...
+        </div>
+
+        <div class="route-map-grid">
+            <div class="route-map-canvas-wrap">
+                <div id="routeMapCanvas" class="route-map-canvas"></div>
+            </div>
+
+            <aside class="route-map-side">
+                <div class="route-map-card">
+                    <h3 class="route-map-card-title">Route Summary</h3>
+                    <dl class="route-map-dl">
+                        <div class="route-map-row">
+                            <dt class="route-map-key">Distance</dt>
+                            <dd id="distanceValue" class="route-map-value">N/A</dd>
+                        </div>
+                        <div class="route-map-row">
+                            <dt class="route-map-key">Cost</dt>
+                            <dd id="costValue" class="route-map-cost">N/A</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <div class="route-map-card">
+                    <h3 class="route-map-card-title">Resolved Addresses</h3>
+                    <p class="route-map-label">Your Address</p>
+                    <p id="senderAddress" class="route-map-address">Loading address...</p>
+
+                    <p class="route-map-label route-map-label-gap">Offer Owner Address</p>
+                    <p id="receiverAddress" class="route-map-address">Loading address...</p>
+                </div>
+            </aside>
+        </div>
+    </section>
+</div>
+</body>
+</html>

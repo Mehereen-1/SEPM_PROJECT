@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="locationMap(mapId, latInputId, lngInputId, addressInputId, latDisplayId, lngDisplayId, addressDisplayId, statusId, initialLat, initialLng, initialAddress)">
+    <input type="hidden" th:id="${latInputId}" name="latitude" th:value="${initialLat}" />
+    <input type="hidden" th:id="${lngInputId}" name="longitude" th:value="${initialLng}" />
+    <input type="hidden" th:id="${addressInputId}" name="address" th:value="${initialAddress}" />
+
+    <div class="location-picker-wrap">
+        <div th:attr="id=${mapId}" class="location-map"></div>
+        <p th:attr="id=${statusId}" class="location-status">Searching for your location…</p>
+        <p th:attr="id=${addressDisplayId}" class="location-status font-semibold">📍 <span th:text="${initialAddress != null ? initialAddress : 'Not selected yet'}">Not selected yet</span></p>
+    </div>
+</div>
+</body>
+</html>

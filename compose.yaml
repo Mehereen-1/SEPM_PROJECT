@@ -16,6 +16,10 @@ services:
     container_name: ${APP_CONTAINER_NAME}
     ports:
       - "${APP_PORT}:8080"
+    command: mvn spring-boot:run
+    volumes:
+      - .:/app
+    working_dir: /app
     environment:
       DB_URL: jdbc:postgresql://db:5432/${DB_NAME}
       DB_USER: ${DB_USER}
@@ -28,3 +32,4 @@ services:
 
 volumes:
   db_data:
+    name: sepm_project_db_data

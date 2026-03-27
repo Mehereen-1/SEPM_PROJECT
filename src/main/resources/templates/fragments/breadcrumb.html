@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+<div th:fragment="breadcrumb(currentPage)" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-sm text-slate-500 mb-6 flex items-center gap-2 pt-5">
+    <a th:href="@{/}" class="hover:text-rose-500 transition">Home</a>
+    <span>/</span>
+    <span th:text="${currentPage}" class="font-semibold text-slate-700">Page</span>
+</div>
+</body>
+</html>
