@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse & Exchange Offers - BookSwap</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <style>
+        :root {
+            --brand-main: #f43464;
+            --brand-accent: #f85486;
+            --ink: #1f2937;
+            --paper: #f8fafc;
+            --card: #ffffff;
+            --line: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--ink);
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        header {
+            display: none;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.55rem;
+            letter-spacing: 0.5px;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 999px;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .page-wrap {
+            max-width: 1200px;
+            margin: 28px auto 60px auto;
+            padding: 0 18px;
+        }
+
+        .hero-panel {
+            background: linear-gradient(145deg, #ffffff, #f2f5fb);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 26px;
+            box-shadow: 0 8px 24px rgba(38, 50, 72, 0.08);
+            margin-bottom: 24px;
+        }
+
+        .hero-panel h2 {
+            margin: 0 0 6px 0;
+            font-size: 1.95rem;
+            color: #1e2b43;
+        }
+
+        .hero-panel p {
+            margin: 0;
+            color: #52607a;
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .toolbar input,
+        .toolbar select {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: #fff;
+        }
+
+        .stats {
+            margin: 16px 0 8px 0;
+            color: #62708a;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .status-banner {
+            margin: 12px 0 18px 0;
+            padding: 11px 13px;
+            border-radius: 10px;
+            font-size: 0.93rem;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: #52607a;
+            display: none;
+        }
+
+        .status-banner.success {
+            display: block;
+            background: #f0fbf4;
+            border-color: #b7e3c7;
+            color: #1e6f40;
+        }
+
+        .status-banner.error {
+            display: block;
+            background: #fff5f5;
+            border-color: #f1c7c7;
+            color: #8f2f2f;
+        }
+
+        .status-banner.info {
+            display: block;
+            background: #f3f8ff;
+            border-color: #c9ddfb;
+            color: #2d5f99;
+        }
+
+        .offers-grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+
+        .offer-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 18px rgba(38, 50, 72, 0.08);
+            display: flex;
+            flex-direction: column;
+            animation: fadeUp 0.45s ease both;
+        }
+
+        .offer-gallery {
+            height: 220px;
+            background: linear-gradient(135deg, #e9eef8, #dce4f3);
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+        }
+
+        .offer-gallery img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .gallery-empty {
+            color: #6f7f9c;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+        }
+
+        .offer-body {
+            padding: 16px;
+        }
+
+        .exchange-select {
+            margin-top: 14px;
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 9px 10px;
+            font-size: 0.92rem;
+        }
+
+        .exchange-btn {
+            margin-top: 10px;
+            width: 100%;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-weight: 700;
+            background: linear-gradient(120deg, #4a6fa5, #5f85bd);
+            color: #fff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .exchange-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(74, 111, 165, 0.3);
+        }
+
+        .exchange-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .map-route-btn {
+            margin-top: 8px;
+            width: 100%;
+            border: 1px solid #f1cad6;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-weight: 700;
+            background: #fff;
+            color: #be2f58;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .map-route-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(190, 47, 88, 0.15);
+            background: #fff8fb;
+        }
+
+        .map-route-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .exchange-note {
+            margin-top: 8px;
+            font-size: 0.84rem;
+            color: #7182a0;
+        }
+
+        .offer-title {
+            margin: 0;
+            font-size: 1.08rem;
+            color: #1d2a42;
+            line-height: 1.3;
+        }
+
+        .offer-author {
+            margin: 6px 0 12px 0;
+            color: #586a88;
+            font-size: 0.95rem;
+        }
+
+        .badge-condition {
+            background: #edf3ff;
+            color: #2f5ea0;
+            border: 1px solid #c7d8f6;
+            font-size: 0.8rem;
+            padding: 5px 9px;
+            border-radius: 999px;
+            display: inline-block;
+            margin-bottom: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .offer-note {
+            margin: 0;
+            color: #4c5b76;
+            line-height: 1.45;
+            min-height: 42px;
+            font-size: 0.94rem;
+        }
+
+        .offer-meta {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed #d8e0ee;
+            color: #607290;
+            font-size: 0.86rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .loading,
+        .empty,
+        .error {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 34px 20px;
+            text-align: center;
+            color: #5d6b85;
+            box-shadow: 0 8px 16px rgba(38, 50, 72, 0.06);
+        }
+
+        .error {
+            color: #9a2f2f;
+            background: #fff5f5;
+            border-color: #f1c7c7;
+        }
+
+        .requests-panel {
+            margin-top: 28px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(38, 50, 72, 0.06);
+        }
+
+        .requests-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .requests-header h3 {
+            margin: 0;
+            color: #1e2b43;
+        }
+
+        .refresh-btn {
+            border: 1px solid #c7d8f6;
+            background: #edf3ff;
+            color: #2f5ea0;
+            border-radius: 999px;
+            padding: 7px 13px;
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .request-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .request-box {
+            border: 1px solid #e4eaf5;
+            border-radius: 12px;
+            padding: 12px;
+            background: #fcfdff;
+        }
+
+        .request-box h4 {
+            margin: 0 0 10px 0;
+            color: #344765;
+            font-size: 1rem;
+        }
+
+        .request-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .request-item {
+            border: 1px solid #dde6f4;
+            border-radius: 10px;
+            padding: 10px;
+            background: #fff;
+        }
+
+        .request-item-title {
+            margin: 0;
+            font-size: 0.95rem;
+            color: #25344f;
+            font-weight: 700;
+        }
+
+        .request-item-meta {
+            margin: 6px 0;
+            font-size: 0.84rem;
+            color: #5e6f8e;
+            line-height: 1.45;
+        }
+
+        .request-status {
+            display: inline-block;
+            font-size: 0.78rem;
+            border-radius: 999px;
+            font-weight: 700;
+            padding: 4px 9px;
+            margin-top: 4px;
+        }
+
+        .status-pending {
+            background: #fff8e8;
+            border: 1px solid #f0d79b;
+            color: #8e6300;
+        }
+
+        .status-accepted {
+            background: #ecfbf1;
+            border: 1px solid #b9e4c9;
+            color: #1b6f3c;
+        }
+
+        .status-rejected {
+            background: #fff2f2;
+            border: 1px solid #efc1c1;
+            color: #8f2f2f;
+        }
+
+        .request-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 7px;
+        }
+
+        .request-action-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .accept-btn {
+            background: #2f9055;
+            color: #fff;
+        }
+
+        .reject-btn {
+            background: #cf4b4b;
+            color: #fff;
+        }
+
+        .subtle-empty {
+            padding: 10px;
+            border: 1px dashed #d6dfed;
+            border-radius: 10px;
+            color: #6a7b99;
+            font-size: 0.9rem;
+            background: #fff;
+        }
+
+        footer {
+            margin-top: 56px;
+            padding: 18px;
+            text-align: center;
+            background: #1f2531;
+            color: #ced5e1;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .route-map-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1055;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .route-map-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+        }
+
+        .route-map-panel {
+            position: relative;
+            width: min(1100px, 100%);
+            max-height: 92vh;
+            overflow: auto;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.3);
+        }
+
+        .route-map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .route-map-title {
+            margin: 0;
+            font-size: 1.45rem;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .route-map-subtitle {
+            margin: 6px 0 0;
+            font-size: 0.92rem;
+            color: #475569;
+        }
+
+        .route-map-close-btn {
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 8px 12px;
+            background: #fff;
+            color: #334155;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .route-map-status {
+            margin-top: 12px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            padding: 8px 10px;
+            color: #334155;
+            font-size: 0.88rem;
+        }
+
+        .route-map-status-success {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .route-map-status-error {
+            border-color: #fde68a;
+            background: #fffbeb;
+            color: #92400e;
+        }
+
+        .route-map-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px;
+            margin-top: 16px;
+        }
+
+        .route-map-canvas-wrap {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 10px;
+            background: #fff;
+        }
+
+        .route-map-canvas {
+            height: 430px;
+            border-radius: 12px;
+        }
+
+        .route-map-side {
+            display: grid;
+            gap: 12px;
+            align-content: start;
+        }
+
+        .route-map-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #fff;
+            padding: 12px;
+        }
+
+        .route-map-card-title {
+            margin: 0;
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .route-map-dl {
+            margin: 10px 0 0;
+            display: grid;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .route-map-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .route-map-key {
+            color: #475569;
+        }
+
+        .route-map-value {
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .route-map-cost {
+            color: #be123c;
+            font-weight: 700;
+        }
+
+        .route-map-label {
+            margin: 10px 0 0;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 0.72rem;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .route-map-label-gap {
+            margin-top: 14px;
+        }
+
+        .route-map-address {
+            margin: 5px 0 0;
+            color: #334155;
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 12px;
+                padding: 16px;
+            }
+
+            .toolbar {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-panel h2 {
+                font-size: 1.6rem;
+            }
+
+            .request-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .route-map-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .route-map-canvas {
+                height: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+<div th:replace="~{fragments/breadcrumb :: breadcrumb('Offers')}"></div>
+
+<main class="page-wrap">
+    <section class="hero-panel">
+        <h2>Active Exchange Offers</h2>
+        <p>Find available book copies from community members and pick your next exchange.</p>
+
+        <div class="toolbar">
+            <input id="searchInput" type="text" placeholder="Search by title, author, owner, note...">
+            <select id="conditionFilter" aria-label="Condition filter">
+                <option value="">All conditions</option>
+            </select>
+        </div>
+    </section>
+
+    <div class="stats" id="offerStats">Loading offers...</div>
+    <div id="exchangeStatusBanner" class="status-banner" role="status" aria-live="polite"></div>
+
+    <section id="offersContainer" class="offers-grid" aria-live="polite"></section>
+
+    <section class="requests-panel">
+        <div class="requests-header">
+            <h3>My Exchange Requests</h3>
+            <button id="refreshRequestsBtn" type="button" class="refresh-btn">Refresh Requests</button>
+        </div>
+
+        <div class="request-columns">
+            <div class="request-box">
+                <h4>Requests I Sent</h4>
+                <div id="sentRequestsList" class="request-list"></div>
+            </div>
+            <div class="request-box">
+                <h4>Requests I Received</h4>
+                <div id="receivedRequestsList" class="request-list"></div>
+            </div>
+        </div>
+    </section>
+
+    <div th:replace="~{fragments/route-map-modal :: routeMapModal}"></div>
+</main>
+
+<footer>
+    <p>BookSwap Exchange Network</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="/js/route-map.js"></script>
+<script src="/js/offers.js"></script>
+</body>
+</html>

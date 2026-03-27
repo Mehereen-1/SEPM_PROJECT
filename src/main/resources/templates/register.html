@@ -1,104 +1,171 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Register - BookSwap</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Join Binimoy — Create Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,0,0" rel="stylesheet" />
     <style>
         body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f5f6fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
-        .register-container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
+        .bg-light {
+            background: radial-gradient(circle at top, rgba(244, 52, 100, 0.12), transparent 70%),
+                        linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
         }
-        .register-container h1 {
-            text-align: center;
-            color: #4a6fa5;
-            margin-top: 0;
+        .border-primary {
+            border-color: rgba(244, 52, 100, 0.15);
         }
-        .form-group {
-            margin-bottom: 20px;
+        .bg-primary {
+            background-color: #f43464;
         }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #333;
+        .bg-primary:hover {
+            background-color: #e12f5a;
         }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #4a6fa5;
-        }
-        .register-button {
-            width: 100%;
-            padding: 12px;
-            background: #4a6fa5;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .register-button:hover {
-            background: #3a5a95;
-        }
-        .error-message {
-            color: #d9534f;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #f2dede;
-            border-radius: 5px;
-        }
-        .login-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: #4a6fa5;
-            text-decoration: none;
-        }
-        .login-link:hover {
-            text-decoration: underline;
+        .focus-ring-primary:focus {
+            outline: 2px solid rgba(244, 52, 100, 0.35);
+            outline-offset: 2px;
         }
     </style>
 </head>
-<body>
-    <div class="register-container">
-        <h1>Register</h1>
-        <div th:if="${error}" class="error-message" th:text="${error}"></div>
-        <form th:action="@{/register}" th:object="${userForm}" method="post">
-            <div class="form-group">
-                <label for="name">Name:</label>
-                <input type="text" id="name" th:field="*{name}" required autofocus>
+<body class="min-h-screen bg-light">
+    <div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+
+    <div th:replace="~{fragments/breadcrumb :: breadcrumb('Sign Up')}"></div>
+
+    <main class="min-h-[calc(100vh-76px)] flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-3xl">
+        <div class="bg-white dark:bg-slate-900 rounded-xl border border-primary shadow-sm">
+            <div class="px-8 py-10 md:px-12">
+                <header class="text-center">
+                    <h1 class="text-3xl md:text-4xl font-semibold text-slate-900 dark:text-white">Join Binimoy</h1>
+                    <p class="mt-2 text-sm md:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                        Create an account or sign in to start exchanging books.
+                    </p>
+                </header>
+
+                <div class="mt-10 flex items-center justify-center gap-2">
+                    <a th:href="@{/login}"
+                       th:classappend="${#httpServletRequest.requestURI == '/login'} ? 'bg-white shadow-sm' : 'bg-transparent'"
+                       class="px-5 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition">
+                        Sign In
+                    </a>
+                    <a th:href="@{/register}"
+                       th:classappend="${#httpServletRequest.requestURI == '/register'} ? 'bg-white shadow-sm' : 'bg-transparent'"
+                       class="px-5 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white transition">
+                        Sign Up
+                    </a>
+                </div>
+
+                <div class="mt-8">
+                    <div th:if="${#httpServletRequest.requestURI == '/register'}" class="space-y-6">
+                        <form th:action="@{/register}" method="post" class="space-y-6" id="authForm">
+                            <!-- Hidden field used to combine first + last into backend 'name' property -->
+                            <input type="hidden" name="name" id="fullName" />
+
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    First Name
+                                    <input
+                                        type="text"
+                                        id="firstName"
+                                        name="firstName"
+                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
+                                        placeholder="Jane" />
+                                </label>
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Last Name
+                                    <input
+                                        type="text"
+                                        id="lastName"
+                                        name="lastName"
+                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
+                                        placeholder="Doe" />
+                                </label>
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-1">
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Email Address
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        required
+                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
+                                        placeholder="jane.doe@example.com" />
+                                </label>
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Password
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        required
+                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
+                                        placeholder="Create a password" />
+                                </label>
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Confirm Password
+                                    <input
+                                        type="password"
+                                        name="confirmPassword"
+                                        required
+                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
+                                        placeholder="Confirm password" />
+                                </label>
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Contact Number
+                                    <input
+                                        type="tel"
+                                        name="contact"
+                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none"
+                                        placeholder="(555) 000-0000" />
+                                </label>
+                                <label class="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                                    Date of Birth
+                                    <input
+                                        type="date"
+                                        name="dob"
+                                        class="mt-2 w-full rounded-lg border border-slate-200 bg-white px-4 h-12 text-sm text-slate-900 shadow-sm focus:ring-4 focus:ring-primary focus:outline-none" />
+                                </label>
+                            </div>
+
+                            <button type="submit" class="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-white text-sm font-semibold shadow-lg transition hover:bg-primary/90">
+                                <span class="material-symbols-rounded text-base">person_add</span>
+                                Create Account
+                            </button>
+                        </form>
+
+                        <p class="text-center text-sm text-slate-500 dark:text-slate-300">
+                            Already have an account?
+                            <a th:href="@{/login}" class="font-semibold text-primary hover:text-primary/80">Sign In</a>
+                        </p>
+                    </div>
+                </div>
+
             </div>
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" th:field="*{email}" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" th:field="*{password}" required>
-            </div>
-            <button type="submit" class="register-button">Register</button>
-        </form>
-        <a class="login-link" th:href="@{/login}">Already have an account? Login</a>
+        </div>
     </div>
+
+    <script>
+        // Combine first + last name into backend expected 'name' field before submit
+        const authForm = document.getElementById('authForm');
+        if (authForm) {
+            authForm.addEventListener('submit', () => {
+                const firstName = document.getElementById('firstName')?.value || '';
+                const lastName = document.getElementById('lastName')?.value || '';
+                const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ');
+                document.getElementById('fullName').value = fullName;
+            });
+        }
+    </script>
+    </main>
 </body>
 </html>

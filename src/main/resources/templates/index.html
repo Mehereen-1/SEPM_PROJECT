@@ -1,218 +1,199 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <head>
-    <title>BookSwap – Exchange Books</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bibliophile - Share Stories</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,500,0,0" rel="stylesheet" />
     <style>
-        body{
-            margin:0;
-            font-family: Arial, Helvetica, sans-serif;
-            background:#f5f6fa;
+        :root {
+            --rose-50: #f8f1f5;
+            --rose-100: #f5e8ee;
+            --rose-300: #f7c7d8;
+            --rose-500: #f43f6a;
+            --rose-600: #e73360;
+            --ink-900: #0f172a;
+            --ink-600: #475569;
         }
-        header{
-            background:#4a6fa5;
-            color:white;
-            padding:20px 40px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
+
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--rose-50);
+            color: var(--ink-900);
         }
-        header h1{
-            margin:0;
-        }
-        nav a, .dropdown-toggle {
-            color:white !important;
-            margin-left:20px;
-            text-decoration:none;
-            font-weight:bold;
-            transition: background 0.2s, color 0.2s;
-        }
-        nav a:hover, .dropdown-toggle:hover, .dropdown-toggle:focus {
-            background: #395a8a !important;
-            color: #fff !important;
-            border-radius: 6px;
-        }
-        .btn-outline-light, .btn-outline-light:focus {
-            color: #fff !important;
-            border-color: #fff !important;
-            background: transparent !important;
-        }
-        .btn-outline-light:hover, .btn-outline-light:active {
-            background: #395a8a !important;
-            color: #fff !important;
-            border-color: #fff !important;
-        }
-        .dropdown-toggle {
-            padding: 8px 18px !important;
-            border-radius: 6px !important;
-            color: #fff !important;
-            background: transparent !important;
-        }
-        .dropdown-toggle:hover, .dropdown-toggle:focus {
-            background: #395a8a !important;
-            color: #fff !important;
-        }
-        .dropdown-menu {
-            min-width: 140px;
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 610px;
             background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-            border: none;
         }
-        .dropdown-menu .dropdown-item {
-            color: #222 !important;
-            background: #fff !important;
-            padding: 10px 20px;
-            border-radius: 6px;
-            transition: background 0.2s, color 0.2s;
+
+        .hero-visual {
+            background: linear-gradient(180deg, #f7ebf1 0%, #f4e4ec 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
         }
-        .dropdown-menu .dropdown-item:hover, .dropdown-menu .dropdown-item:focus {
-            background: #e9ecef !important;
-            color: #222 !important;
+
+        .hero-content {
+            background: #fbfbfc;
+            padding: 64px 56px;
+            display: flex;
+            align-items: center;
         }
-        .hero{
-            text-align:center;
-            padding:80px 20px;
-            background:white;
+
+        .cta-primary {
+            background: var(--rose-500);
+            color: #fff;
         }
-        .hero h2{
-            font-size:40px;
-            margin-bottom:10px;
+
+        .cta-primary:hover {
+            background: var(--rose-600);
         }
-        .hero p{
-            color:#555;
-            font-size:18px;
+
+        .cta-secondary {
+            background: #eff2f6;
+            color: #1f2937;
         }
-        .hero button{
-            margin-top:20px;
-            padding:12px 25px;
-            border:none;
-            background:#4a6fa5;
-            color:white;
-            font-size:16px;
-            border-radius:6px;
-            cursor:pointer;
+
+        .cta-secondary:hover {
+            background: #e5eaf0;
         }
-        .section{
-            padding:60px 40px;
-            text-align:center;
+
+        .feature-card {
+            background: #fff;
+            border: 1px solid #eadce3;
+            border-radius: 16px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .features{
-            display:flex;
-            justify-content:center;
-            gap:30px;
-            flex-wrap:wrap;
-            margin-top:40px;
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 24px rgba(244, 63, 106, 0.12);
         }
-        .card{
-            background:white;
-            width:250px;
-            padding:25px;
-            border-radius:10px;
-            box-shadow:0 4px 10px rgba(0,0,0,0.08);
-        }
-        .card h3{
-            margin-top:0;
-        }
-        footer{
-            background:#222;
-            color:#bbb;
-            text-align:center;
-            padding:20px;
+
+        @media (max-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-content {
+                padding: 44px 24px;
+            }
         }
     </style>
 </head>
 <body>
-<header>
-    <h1>📚 BookSwap</h1>
-    <nav class="d-flex align-items-center">
-        <a th:href="@{/}">Home</a>
-        <a th:href="@{/browse}">Browse Books</a>
-        <a th:href="@{/my-books}">My Books</a>
-        <span sec:authorize="!isAuthenticated()">
-            <a th:href="@{/login}" class="btn btn-outline-light ms-3">Login</a>
-        </span>
-        <span sec:authorize="isAuthenticated()">
-            <div class="dropdown ms-3">
-                <a href="#" class="dropdown-toggle btn btn-outline-light" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    [[${#authentication.name}]]
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                    <li><a href="#" class="dropdown-item" id="logoutBtn">Logout</a></li>
-                </ul>
+    <div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+    <div th:replace="~{fragments/breadcrumb :: breadcrumb('Home')}"></div>
+
+    <main>
+        <section class="hero-grid">
+            <div class="hero-visual">
+                <svg viewBox="0 0 460 560" class="w-full max-w-md" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="hairShade" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#6f3947" />
+                            <stop offset="100%" stop-color="#4d2230" />
+                        </linearGradient>
+                    </defs>
+                    <ellipse cx="230" cy="520" rx="120" ry="18" fill="#ead9e2"/>
+                    <path d="M110 230c0-94 54-150 118-150s118 56 118 150v135H110z" fill="url(#hairShade)"/>
+                    <ellipse cx="230" cy="230" rx="86" ry="100" fill="#ffd8cb"/>
+                    <circle cx="198" cy="218" r="8" fill="#6d3a3d"/>
+                    <circle cx="262" cy="218" r="8" fill="#6d3a3d"/>
+                    <path d="M206 266c14 12 34 12 48 0" stroke="#cf7e86" stroke-width="6" stroke-linecap="round" fill="none"/>
+                    <rect x="128" y="332" width="204" height="150" rx="18" fill="#f08f7a"/>
+                    <path d="M230 332v150" stroke="#d97461" stroke-width="4"/>
+                    <path d="M128 350h204" stroke="#e49a88" stroke-width="4"/>
+                </svg>
             </div>
-        </span>
-    </nav>
-</header>
 
-<section class="hero">
-    <h2>Exchange Books With Friends</h2>
-    <p>Share the books you love and discover new ones from other readers.</p>
-    <button>Start Exchanging</button>
-</section>
+            <div class="hero-content">
+                <div class="max-w-xl">
+                    <p class="text-xs sm:text-sm uppercase tracking-[0.24em] text-rose-500 font-bold">A Community For Readers</p>
+                    <h1 class="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.05] text-slate-900">There Is No Friend As Loyal As A Book</h1>
+                    <p class="mt-6 text-lg text-slate-600 leading-relaxed">You are not done with a book until you pass it to another reader. Join our journey of shared stories.</p>
 
-<section class="section">
-    <h2>How It Works</h2>
-    <div class="features">
-        <div class="card">
-            <h3>📖 List Your Books</h3>
-            <p>Add books you want to exchange with other readers.</p>
-        </div>
-        <div class="card">
-            <h3>🔍 Discover Books</h3>
-            <p>Browse books that other users are offering.</p>
-        </div>
-        <div class="card">
-            <h3>🤝 Exchange</h3>
-            <p>Connect with users and schedule a book exchange.</p>
-        </div>
-    </div>
-</section>
+                    <div class="mt-9 flex flex-wrap gap-3">
+                        <a th:href="@{/register(role='BOOK_FRIEND')}" class="cta-primary inline-flex items-center gap-2 rounded-full px-7 py-3 font-semibold shadow-lg shadow-rose-200">
+                            <span class="material-symbols-rounded" style="font-size:18px;">auto_stories</span>
+                            Continue as Book Friend
+                        </a>
+                        <a th:href="@{/register(role='DELIVERY_PARTNER')}" class="cta-secondary inline-flex items-center gap-2 rounded-full px-7 py-3 font-semibold">
+                            <span class="material-symbols-rounded" style="font-size:18px;">local_shipping</span>
+                            Continue as Delivery Partner
+                        </a>
+                    </div>
 
-<section class="section" style="background:white;">
-    <h2>Community Reads</h2>
-    <p>Join a growing community of book lovers sharing stories.</p>
-</section>
+                    <div class="mt-10 pt-6 border-t border-rose-100 grid sm:grid-cols-2 gap-5 text-sm">
+                        <div>
+                            <p class="font-bold text-slate-800">❤ Our Mission</p>
+                            <p class="mt-1 text-slate-500">Connecting readers through the magic of physical books.</p>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800">♻ Sustainable</p>
+                            <p class="mt-1 text-slate-500">Reducing waste by giving every story a second life.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<footer>
-    <p>© 2026 BookSwap – A community for readers</p>
-</footer>
+        <section class="bg-rose-100/60 py-16 sm:py-20">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl font-extrabold text-slate-900">Why Choose Bibliophile?</h2>
+                <p class="mt-3 text-slate-600 max-w-2xl">We believe in the magic of shared stories and the journey of a well-loved book across different hands and homes.</p>
 
-<!-- Logout Confirmation Modal -->
-<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        Are you sure you want to logout?
-      </div>
-      <div class="modal-footer justify-content-between">
-        <form th:action="@{/logout}" method="post" id="logoutForm" style="display:inline; margin:0;">
-            <button type="submit" class="btn btn-danger">Yes</button>
-        </form>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-      </div>
-    </div>
-  </div>
-</div>
+                <div class="mt-10 grid md:grid-cols-3 gap-6">
+                    <article class="feature-card p-6">
+                        <div class="h-10 w-10 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center">
+                            <span class="material-symbols-rounded">auto_stories</span>
+                        </div>
+                        <h3 class="mt-5 text-2xl font-bold text-slate-900">Curated Selection</h3>
+                        <p class="mt-2 text-slate-600">Discover books that resonate with your soul and fit your reading history perfectly.</p>
+                    </article>
 
-<!-- Bootstrap JS (with Popper) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-// Show logout modal on logout click
-const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
-        modal.show();
-    });
-}
-</script>
+                    <article class="feature-card p-6">
+                        <div class="h-10 w-10 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center">
+                            <span class="material-symbols-rounded">local_shipping</span>
+                        </div>
+                        <h3 class="mt-5 text-2xl font-bold text-slate-900">Fast Delivery</h3>
+                        <p class="mt-2 text-slate-600">Our network of delivery partners ensures your next adventure arrives safely.</p>
+                    </article>
 
+                    <article class="feature-card p-6">
+                        <div class="h-10 w-10 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center">
+                            <span class="material-symbols-rounded">groups</span>
+                        </div>
+                        <h3 class="mt-5 text-2xl font-bold text-slate-900">Community Driven</h3>
+                        <p class="mt-2 text-slate-600">Join thousands of passionate readers sharing insights and recommendations.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white py-16 sm:py-20 text-center">
+            <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl sm:text-5xl font-extrabold text-slate-900">Ready to start your next chapter?</h2>
+                <p class="mt-4 text-slate-600 text-lg">Join the Bibliophile community today and help books travel the world.</p>
+                <a th:href="@{/register(role='BOOK_FRIEND')}" class="mt-8 inline-flex rounded-full bg-rose-500 px-10 py-4 text-white font-bold shadow-lg shadow-rose-200 hover:bg-rose-600">Get Started Now</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-rose-50 border-t border-rose-100 py-8 text-center text-sm text-slate-500">
+        <p class="space-x-4">
+            <a href="#" class="hover:text-slate-700">Privacy</a>
+            <a href="#" class="hover:text-slate-700">Terms</a>
+            <a href="#" class="hover:text-slate-700">Help</a>
+            <a href="#" class="hover:text-slate-700">Contact</a>
+        </p>
+        <p class="mt-3">© 2026 Bibliophile. For the love of paper and ink.</p>
+    </footer>
 </body>
 </html>

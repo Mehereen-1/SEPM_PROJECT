@@ -9,4 +9,29 @@ public class HomeController {
     public String home() {
         return "index";
     }
+    
+    @GetMapping("/browse")
+    public String browseBooksPage() {
+        return "books-browse";
+    }
+
+    @GetMapping("/offers-browse")
+    public String browseOffersPage() {
+        return "offers-browse";
+    }
+
+    @GetMapping("/offers-create")
+    public String createOfferPage() {
+        return "offers-create";
+    }
+
+    @GetMapping("/my-offers")
+    public String myOffersPage() {
+        return "my-offers";
+    }
+
+    @GetMapping("/exchange-center")
+    public String exchangeCenterPage() {
+        return "exchange-center";
+    }
 }
