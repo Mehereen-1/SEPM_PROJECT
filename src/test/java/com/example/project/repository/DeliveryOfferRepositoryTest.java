@@ -16,7 +16,8 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Data layer tests for DeliveryOfferRepository.
  * Tests core CRUD operations and query methods using @DataJpaTest.
- * Note: Full integration tests with related entities are tested in controller integration tests.
+ * Note: Full integration tests with related entities are tested in controller
+ * integration tests.
  */
 @DataJpaTest
 @DisplayName("DeliveryOfferRepository Data Layer Tests")
@@ -35,10 +36,10 @@ class DeliveryOfferRepositoryTest {
     void testSaveAndFindDeliveryOffer() {
         // When finding a saved delivery offer
         Optional<DeliveryOffer> found = deliveryOfferRepository.findAll().stream()
-            .filter(d -> d.getStatus() == DeliveryOfferStatus.AVAILABLE)
-            .findFirst();
+                .filter(d -> d.getStatus() == DeliveryOfferStatus.AVAILABLE)
+                .findFirst();
 
-        // Then it exists 
+        // Then it exists
         assertTrue(found.isPresent() || true); // At least the query works
     }
 
@@ -47,8 +48,8 @@ class DeliveryOfferRepositoryTest {
     void testFindByStatus() {
         // When finding offers by status
         var availableOffers = deliveryOfferRepository.findAll().stream()
-            .filter(d -> d.getStatus() == DeliveryOfferStatus.AVAILABLE)
-            .toList();
+                .filter(d -> d.getStatus() == DeliveryOfferStatus.AVAILABLE)
+                .toList();
 
         // Then query executes without error
         assertNotNull(availableOffers);
@@ -90,7 +91,7 @@ class DeliveryOfferRepositoryTest {
         if (!offers.isEmpty()) {
             DeliveryOffer offer = offers.get(0);
             DeliveryOfferStatus originalStatus = offer.getStatus();
-            
+
             // When updating status
             offer.setStatus(DeliveryOfferStatus.PENDING);
             DeliveryOffer updated = deliveryOfferRepository.save(offer);
@@ -112,13 +113,13 @@ class DeliveryOfferRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should verify repository methods are accessible") 
+    @DisplayName("Should verify repository methods are accessible")
     void testRepositoryMethodsExist() {
         // When calling repository methods (compile-time verification)
         // Then no exceptions occur
         long count = deliveryOfferRepository.count();
         var all = deliveryOfferRepository.findAll();
-        
+
         assertNotNull(all);
         assertTrue(count >= 0);
     }
