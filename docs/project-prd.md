@@ -269,6 +269,7 @@ Delivery Cost = Base Fee + (Distance × Rate per KM)
 
 Where:
 
+
 Base Fee = fixed starting cost
 Rate per KM = delivery cost per kilometer
 Distance = geographic distance between users
