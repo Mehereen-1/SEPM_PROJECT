@@ -21,6 +21,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -42,7 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests API endpoints using MockMvc and mocked repositories.
  */
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles("test")
 @DisplayName("DeliveryDashboardController Integration Tests")
 class DeliveryDashboardControllerIntegrationTest {
 
@@ -149,7 +151,7 @@ class DeliveryDashboardControllerIntegrationTest {
                 mockMvc.perform(get("/delivery/dashboard"))
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("delivery-dashboard"))
-                                .andExpect(model().attributeExists("deliveryOfferCardViews"));
+                                .andExpect(model().attributeExists("offers"));
 
                 verify(deliveryOfferRepository, times(1)).findByStatusWithDetails(DeliveryOfferStatus.AVAILABLE);
         }
@@ -172,7 +174,7 @@ class DeliveryDashboardControllerIntegrationTest {
                 mockMvc.perform(get("/delivery/offers"))
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("delivery-dashboard"))
-                                .andExpect(model().attributeExists("deliveryOfferCardViews"));
+                                .andExpect(model().attributeExists("offers"));
         }
 
         @Test
@@ -196,7 +198,7 @@ class DeliveryDashboardControllerIntegrationTest {
                 mockMvc.perform(get("/delivery/pending"))
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("delivery-dashboard"))
-                                .andExpect(model().attributeExists("deliveryOfferCardViews"));
+                                .andExpect(model().attributeExists("offers"));
 
                 verify(deliveryOfferRepository, times(1))
                                 .findByAssigneeAndStatusWithDetails(1L, DeliveryOfferStatus.PENDING);
@@ -223,7 +225,7 @@ class DeliveryDashboardControllerIntegrationTest {
                 mockMvc.perform(get("/delivery/completed"))
                                 .andExpect(status().isOk())
                                 .andExpect(view().name("delivery-dashboard"))
-                                .andExpect(model().attributeExists("deliveryOfferCardViews"));
+                                .andExpect(model().attributeExists("offers"));
 
                 verify(deliveryOfferRepository, times(1))
                                 .findByAssigneeAndStatusWithDetails(1L, DeliveryOfferStatus.COMPLETED);
@@ -257,7 +259,7 @@ class DeliveryDashboardControllerIntegrationTest {
                 // When & Then
                 mockMvc.perform(post("/delivery/accept/1").with(csrf()))
                                 .andExpect(status().is3xxRedirection())
-                                .andExpect(redirectedUrl("http://localhost/login"));
+                                .andExpect(redirectedUrl("/login"));
 
                 verify(deliveryOfferRepository, never()).save(any());
         }
@@ -346,7 +348,7 @@ class DeliveryDashboardControllerIntegrationTest {
                 // When & Then
                 mockMvc.perform(post("/delivery/complete/1").with(csrf()))
                                 .andExpect(status().is3xxRedirection())
-                                .andExpect(redirectedUrl("http://localhost/login"));
+                                .andExpect(redirectedUrl("/login"));
 
                 verify(deliveryOfferRepository, never()).save(any());
         }
