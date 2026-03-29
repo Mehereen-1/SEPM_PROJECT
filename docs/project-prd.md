@@ -7,6 +7,8 @@
 
 ---
 
+
+
 # 1. Introduction
 
 ## 1.1 Project Title
@@ -268,6 +270,7 @@ Formula:
 Delivery Cost = Base Fee + (Distance × Rate per KM)
 
 Where:
+
 
 Base Fee = fixed starting cost
 Rate per KM = delivery cost per kilometer
