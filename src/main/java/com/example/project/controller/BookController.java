@@ -5,6 +5,7 @@ import com.example.project.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,6 +46,7 @@ public class BookController {
      * Returns 409 if a book with the same title and author already exists.
      */
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> addBook(@RequestBody BookRequest request) {
         Book book = new Book();
         book.setTitle(request.title());

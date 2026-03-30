@@ -11,6 +11,9 @@ import java.util.List;
 
 @Repository
 public interface OfferRepository extends JpaRepository<Offer, Long> {
+	@Query("select o from Offer o join fetch o.book join fetch o.user order by o.createdAt desc")
+	List<Offer> findAllWithDetails();
+
 	@Query("select o from Offer o join fetch o.book join fetch o.user where o.status = :status")
 	List<Offer> findByStatusWithDetails(@Param("status") OfferStatus status);
 

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notifications</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0,0" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/styles/notifications.css}" />
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            background: radial-gradient(circle at top right, rgba(244, 63, 106, 0.12), transparent 48%), #f8fafc;
+            color: #0f172a;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+
+<main class="notif-page-wrap" data-notification-page>
+    <header class="notif-page-header">
+        <h1 class="notif-page-title">Your Notifications</h1>
+        <div style="display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div class="notif-filter-group">
+                <button type="button" class="notif-filter-btn active" data-notification-filter-all>All</button>
+                <button type="button" class="notif-filter-btn" data-notification-filter-unread>Unread</button>
+            </div>
+            <button type="button" class="notif-mark-btn" data-notification-page-mark-all>Mark all as read</button>
+        </div>
+    </header>
+
+    <section class="notif-page-list" data-notification-page-list></section>
+    <p class="notif-empty" style="display: none;" data-notification-page-empty>No notifications yet.</p>
+</main>
+
+<script src="/js/notifications.js"></script>
+</body>
+</html>

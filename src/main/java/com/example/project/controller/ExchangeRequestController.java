@@ -7,6 +7,7 @@ import com.example.project.entity.ExchangeRequestStatus;
 import com.example.project.entity.Offer;
 import com.example.project.entity.OfferStatus;
 import com.example.project.entity.User;
+import com.example.project.notification.service.NotificationService;
 import com.example.project.repository.DeliveryOfferRepository;
 import com.example.project.repository.ExchangeRequestRepository;
 import com.example.project.repository.OfferRepository;
@@ -46,6 +47,9 @@ public class ExchangeRequestController {
 
     @Autowired
     private SecurityUtil securityUtil;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @PostMapping
     public ResponseEntity<?> createExchangeRequest(@RequestBody CreateExchangeRequest request) {
@@ -101,6 +105,7 @@ public class ExchangeRequestController {
         exchangeRequest.setCreatedAt(LocalDateTime.now());
 
         ExchangeRequest saved = exchangeRequestRepository.save(exchangeRequest);
+        notificationService.publishExchangeRequestSent(saved, currentUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(saved));
     }
 
@@ -136,6 +141,7 @@ public class ExchangeRequestController {
         offerRepository.save(exchangeRequest.getRequesterOffer());
         offerRepository.save(exchangeRequest.getTargetOffer());
         ExchangeRequest updated = exchangeRequestRepository.save(exchangeRequest);
+        notificationService.publishExchangeAccepted(updated, currentUser.getId());
         createDeliveryOfferIfMissing(updated);
 
         return ResponseEntity.ok(toResponse(updated));
@@ -168,6 +174,7 @@ public class ExchangeRequestController {
 
         exchangeRequest.setStatus(ExchangeRequestStatus.REJECTED);
         ExchangeRequest updated = exchangeRequestRepository.save(exchangeRequest);
+        notificationService.publishExchangeRejected(updated, currentUser.getId());
 
         return ResponseEntity.ok(toResponse(updated));
     }
@@ -215,7 +222,8 @@ public class ExchangeRequestController {
         deliveryOffer.setStatus(DeliveryOfferStatus.AVAILABLE);
         deliveryOffer.setDeliveryFee(0.0d);
         deliveryOffer.setCreatedAt(LocalDateTime.now());
-        deliveryOfferRepository.save(deliveryOffer);
+        DeliveryOffer created = deliveryOfferRepository.save(deliveryOffer);
+        notificationService.publishDeliveryCreated(created, null);
     }
 
     private ExchangeRequestDetailsResponse toResponse(ExchangeRequest exchangeRequest) {

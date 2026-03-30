@@ -1,18 +1,20 @@
 package com.example.project.controller;
 
-import com.example.project.security.JwtUtil;
-import com.example.project.service.UserService;
-import com.example.project.entity.User;
-import com.example.project.repository.UserRepository;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
-import java.util.Map;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.project.security.JwtUtil;
+import com.example.project.service.UserService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -23,10 +25,7 @@ public class AuthRestController {
     private AuthenticationManager authenticationManager;
     @Autowired
     private JwtUtil jwtUtil;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> req) {

@@ -27,11 +27,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -191,7 +193,13 @@ class DeliveryDashboardControllerIntegrationTest {
 
                 when(securityUtil.getCurrentUsername()).thenReturn("johndelivery@example.com");
                 when(userRepository.findByEmail("johndelivery@example.com")).thenReturn(Optional.of(deliveryPartner));
-                when(deliveryOfferRepository.findByAssigneeAndStatusWithDetails(1L, DeliveryOfferStatus.PENDING))
+                when(deliveryOfferRepository.findByAssigneeAndStatusesWithDetails(
+                                1L,
+                                Arrays.asList(
+                                                DeliveryOfferStatus.ACCEPTED,
+                                                DeliveryOfferStatus.PICKUP_STARTED,
+                                                DeliveryOfferStatus.BOOK_PICKED,
+                                                DeliveryOfferStatus.PENDING)))
                                 .thenReturn(pendingOffers);
 
                 // When & Then
@@ -201,7 +209,7 @@ class DeliveryDashboardControllerIntegrationTest {
                                 .andExpect(model().attributeExists("offers"));
 
                 verify(deliveryOfferRepository, times(1))
-                                .findByAssigneeAndStatusWithDetails(1L, DeliveryOfferStatus.PENDING);
+                                .findByAssigneeAndStatusesWithDetails(eq(1L), anyList());
         }
 
         @Test
@@ -328,6 +336,7 @@ class DeliveryDashboardControllerIntegrationTest {
                 deliveryOffer.setStatus(DeliveryOfferStatus.PENDING);
                 deliveryOffer.setAssignedDeliveryPartner(deliveryPartner);
                 deliveryOffer.setAcceptedAt(LocalDateTime.now());
+                deliveryOffer.setBookPickedAt(LocalDateTime.now());
 
                 when(securityUtil.getCurrentUsername()).thenReturn("johndelivery@example.com");
                 when(userRepository.findByEmail("johndelivery@example.com")).thenReturn(Optional.of(deliveryPartner));
@@ -336,8 +345,9 @@ class DeliveryDashboardControllerIntegrationTest {
 
                 // When & Then
                 mockMvc.perform(post("/delivery/complete/1").with(csrf()))
-                                .andExpect(status().is3xxRedirection())
-                                .andExpect(redirectedUrl("/delivery/completed"));
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.status").value("COMPLETED"));
 
                 verify(deliveryOfferRepository, times(1)).save(any(DeliveryOffer.class));
         }
@@ -347,8 +357,8 @@ class DeliveryDashboardControllerIntegrationTest {
         void testCompleteOffer_NotLoggedIn() throws Exception {
                 // When & Then
                 mockMvc.perform(post("/delivery/complete/1").with(csrf()))
-                                .andExpect(status().is3xxRedirection())
-                                .andExpect(redirectedUrl("/login"));
+                                .andExpect(status().isUnauthorized())
+                                .andExpect(jsonPath("$.success").value(false));
 
                 verify(deliveryOfferRepository, never()).save(any());
         }
@@ -364,8 +374,8 @@ class DeliveryDashboardControllerIntegrationTest {
 
                 // When & Then
                 mockMvc.perform(post("/delivery/complete/999").with(csrf()))
-                                .andExpect(status().is3xxRedirection())
-                                .andExpect(redirectedUrl("/delivery/pending"));
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.success").value(false));
 
                 verify(deliveryOfferRepository, never()).save(any());
         }
@@ -389,8 +399,8 @@ class DeliveryDashboardControllerIntegrationTest {
 
                 // When & Then
                 mockMvc.perform(post("/delivery/complete/1").with(csrf()))
-                                .andExpect(status().is3xxRedirection())
-                                .andExpect(redirectedUrl("/delivery/pending"));
+                                .andExpect(status().isNotFound())
+                                .andExpect(jsonPath("$.success").value(false));
 
                 verify(deliveryOfferRepository, never()).save(any());
         }
@@ -400,6 +410,7 @@ class DeliveryDashboardControllerIntegrationTest {
         @WithMockUser(username = "johndelivery", roles = "DELIVERY_PARTNER")
         void testCompleteOffer_NotPending() throws Exception {
                 // Given
+                deliveryOffer.setAssignedDeliveryPartner(deliveryPartner);
                 deliveryOffer.setStatus(DeliveryOfferStatus.AVAILABLE);
 
                 when(securityUtil.getCurrentUsername()).thenReturn("johndelivery@example.com");
@@ -408,8 +419,8 @@ class DeliveryDashboardControllerIntegrationTest {
 
                 // When & Then
                 mockMvc.perform(post("/delivery/complete/1").with(csrf()))
-                                .andExpect(status().is3xxRedirection())
-                                .andExpect(redirectedUrl("/delivery/pending"));
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.success").value(false));
 
                 verify(deliveryOfferRepository, never()).save(any());
         }

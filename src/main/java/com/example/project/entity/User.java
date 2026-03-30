@@ -40,6 +40,9 @@ public class User {
     private String password;
 
     @Column
+    private Boolean active = true;
+
+    @Column
     private String gender;
 
     @Column
@@ -85,6 +88,8 @@ public class User {
     public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
     public String getGender() { return gender; }
     public void setGender(String gender) { this.gender = gender; }
     public LocalDate getDateOfBirth() { return dateOfBirth; }

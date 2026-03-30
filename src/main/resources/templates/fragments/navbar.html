@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <body>
 <div th:fragment="mainNavbar">
+    <link rel="stylesheet" th:href="@{/styles/notifications.css}" />
     <style>
         .biblio-nav {
             position: sticky;
@@ -177,6 +178,21 @@
                     <span class="material-symbols-rounded" style="font-size: 19px;">person_add</span>
                 </a>
 
+                <div sec:authorize="isAuthenticated()" class="notif-shell" data-notification-shell>
+                    <a th:href="@{/notification-center}" class="biblio-icon-btn notif-bell" data-notification-bell aria-label="Notifications">
+                        <span class="material-symbols-rounded" style="font-size: 19px;">notifications</span>
+                        <span class="notif-badge" style="display: none;" data-notification-badge>0</span>
+                    </a>
+                    <div class="notif-dropdown" data-notification-dropdown>
+                        <div class="notif-header">
+                            <span class="notif-title">Notifications</span>
+                            <button type="button" class="notif-link-btn" data-notification-mark-all>Mark all read</button>
+                        </div>
+                        <div class="notif-list" data-notification-list></div>
+                        <p class="notif-empty" data-notification-empty>No notifications yet.</p>
+                    </div>
+                </div>
+
                 <span sec:authorize="isAuthenticated()" class="biblio-user" th:text="${#authentication.name}">user</span>
                 <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
                     <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
@@ -198,10 +214,13 @@
             });
         })();
     </script>
+    <script src="/js/toast.js"></script>
+    <script src="/js/notifications.js"></script>
 </div>
 
 <!-- Reader Navbar Fragment (for authenticated readers) -->
 <div th:fragment="readerNavbar">
+    <link rel="stylesheet" th:href="@{/styles/notifications.css}" />
     <style>
         .biblio-nav {
             position: sticky;
@@ -369,10 +388,26 @@
                 <a th:href="@{/offers-browse}" class="biblio-link">Offers</a>
                 <a th:href="@{/my-offers}" class="biblio-link">My Offers</a>
                 <a th:href="@{/exchange-center}" class="biblio-link">Exchange</a>
+                <a th:href="@{/notification-center}" class="biblio-link">Notifications</a>
                 <a th:href="@{/profile}" class="biblio-link">Profile</a>
             </nav>
 
             <div class="biblio-actions">
+                <div class="notif-shell" data-notification-shell>
+                    <a th:href="@{/notification-center}" class="biblio-icon-btn notif-bell" data-notification-bell aria-label="Notifications">
+                        <span class="material-symbols-rounded" style="font-size: 19px;">notifications</span>
+                        <span class="notif-badge" style="display: none;" data-notification-badge>0</span>
+                    </a>
+                    <div class="notif-dropdown" data-notification-dropdown>
+                        <div class="notif-header">
+                            <span class="notif-title">Notifications</span>
+                            <button type="button" class="notif-link-btn" data-notification-mark-all>Mark all read</button>
+                        </div>
+                        <div class="notif-list" data-notification-list></div>
+                        <p class="notif-empty" data-notification-empty>No notifications yet.</p>
+                    </div>
+                </div>
+
                 <span class="biblio-user" th:text="${#authentication.name}">user</span>
                 <form th:action="@{/logout}" method="post">
                     <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
@@ -394,6 +429,8 @@
             });
         })();
     </script>
+    <script src="/js/toast.js"></script>
+    <script src="/js/notifications.js"></script>
 </div>
 
 <div th:fragment="autoNavbar">

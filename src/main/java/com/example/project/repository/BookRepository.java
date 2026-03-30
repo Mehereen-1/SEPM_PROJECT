@@ -21,5 +21,7 @@ public interface BookRepository extends JpaRepository<Book, String> {
     Optional<Book> findByBookId(String bookId);
 
     Optional<Book> findByTitleIgnoreCaseAndAuthorIgnoreCase(String title, String author);
+
+    boolean existsByTitleIgnoreCaseAndAuthorIgnoreCaseAndBookIdNot(String title, String author, String bookId);
 }
 
