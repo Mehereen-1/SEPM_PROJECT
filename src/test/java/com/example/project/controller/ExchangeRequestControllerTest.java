@@ -9,6 +9,7 @@ import com.example.project.entity.Role;
 import com.example.project.entity.User;
 import com.example.project.notification.service.NotificationService;
 import com.example.project.repository.BookRepository;
+import com.example.project.repository.DeliveryOfferRepository;
 import com.example.project.repository.ExchangeRequestRepository;
 import com.example.project.repository.OfferRepository;
 import com.example.project.repository.RoleRepository;
@@ -58,6 +59,9 @@ public class ExchangeRequestControllerTest {
     private ExchangeRequestRepository exchangeRequestRepository;
 
     @Autowired
+    private DeliveryOfferRepository deliveryOfferRepository;
+
+    @Autowired
     private OfferRepository offerRepository;
 
     @Autowired
@@ -92,6 +96,7 @@ public class ExchangeRequestControllerTest {
         String conditionOne = resolveValidOfferCondition(0);
         String conditionTwo = conditionOne;
 
+        deliveryOfferRepository.deleteAll();
         exchangeRequestRepository.deleteAll();
         offerRepository.deleteAll();
         userRepository.deleteAll();
