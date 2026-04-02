@@ -1,15 +1,18 @@
 spring:
   application:
     name: project
+  docker:
+    compose:
+      enabled: false
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:${DATABASE_URL:}}
+    username: ${DB_USER:${PGUSER:}}
+    password: ${DB_PASSWORD:${PGPASSWORD:}}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO:validate}
+      ddl-auto: ${DDL_AUTO:update}
     show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
@@ -19,6 +22,7 @@ spring:
     cache: ${THYMELEAF_CACHE:true}
 
 server:
+  address: ${SERVER_ADDRESS:0.0.0.0}
   port: ${PORT:8080}
 
 admin:
