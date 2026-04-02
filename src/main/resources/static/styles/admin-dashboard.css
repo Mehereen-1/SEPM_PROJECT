@@ -4,8 +4,8 @@
     --ink: #1f1f2d;
     --muted: #6b5d66;
     --line: #efdde6;
-    --accent: #f43f6a;
-    --accent-strong: #e73360;
+    --accent: #f5b1c1;
+    --accent-strong: #a56071;
     --accent-soft: #fde9f0;
     --warn: #9c5a16;
     --danger: #a3193c;
@@ -34,7 +34,7 @@ body {
 }
 
 .sidebar {
-    background: linear-gradient(180deg, #f43f6a 0%, #db2e57 100%);
+    background: linear-gradient(180deg, #f6aebf 0%, #b06e7d 100%);
     color: #fff6f8;
     padding: 24px 18px;
     border-right: 1px solid rgba(255, 255, 255, 0.18);
@@ -188,6 +188,39 @@ body {
     gap: 10px;
 }
 
+.panel-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.books-search-input {
+    width: min(300px, 45vw);
+    border: 1px solid #ead8e1;
+    border-radius: 9px;
+    padding: 8px 10px;
+    font: inherit;
+    background: #fff;
+}
+
+.books-search-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(244, 63, 106, 0.14);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .panel-head h2 {
     margin: 0;
     font-family: "Space Grotesk", sans-serif;
@@ -229,6 +262,27 @@ table {
     width: 100%;
     border-collapse: collapse;
     min-width: 680px;
+}
+
+#panel-books table {
+    min-width: 0;
+    table-layout: fixed;
+}
+
+#panel-books th,
+#panel-books td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+#panel-books td:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+#panel-books td:last-child .btn + .btn {
+    margin-left: 0;
 }
 
 th,
@@ -450,5 +504,24 @@ tbody tr:nth-child(even) {
 
     .stats-grid {
         grid-template-columns: 1fr;
+    }
+
+    .panel-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .panel-head-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .books-search-input {
+        width: 100%;
+    }
+
+    #panel-books th,
+    #panel-books td {
+        font-size: 0.86rem;
     }
 }

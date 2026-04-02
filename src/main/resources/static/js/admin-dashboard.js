@@ -1,6 +1,7 @@
 (() => {
   const state = {
     books: [],
+    filteredBooks: [],
     offers: [],
     exchangeRequests: [],
     users: []
@@ -30,6 +31,9 @@
     exchangeRequestsEmpty: document.getElementById("exchangeRequestsEmpty"),
     usersEmpty: document.getElementById("usersEmpty"),
 
+    booksSearchInput: document.getElementById("booksSearchInput"),
+    resetBooksSearchBtn: document.getElementById("resetBooksSearchBtn"),
+
     addBookBtn: document.getElementById("addBookBtn"),
     refreshDashboard: document.getElementById("refreshDashboard"),
     refreshOffers: document.getElementById("refreshOffers"),
@@ -45,6 +49,7 @@
     bookAuthor: document.getElementById("bookAuthor"),
     bookYear: document.getElementById("bookYear"),
     bookIsbn: document.getElementById("bookIsbn"),
+    bookCoverImg: document.getElementById("bookCoverImg"),
     bookDescription: document.getElementById("bookDescription"),
 
     toast: document.getElementById("toast")
@@ -142,14 +147,14 @@
   }
 
   function renderBooks() {
-    if (!state.books.length) {
+    if (!state.filteredBooks.length) {
       elements.booksTableBody.innerHTML = "";
       elements.booksEmpty.hidden = false;
       return;
     }
 
     elements.booksEmpty.hidden = true;
-    elements.booksTableBody.innerHTML = state.books
+    elements.booksTableBody.innerHTML = state.filteredBooks
       .map((book) => `
         <tr>
           <td>${escapeHtml(book.title)}</td>
@@ -162,6 +167,22 @@
         </tr>
       `)
       .join("");
+  }
+
+  function applyBooksFilter() {
+    const term = (elements.booksSearchInput?.value || "").trim().toLowerCase();
+    if (!term) {
+      state.filteredBooks = [...state.books];
+      renderBooks();
+      return;
+    }
+
+    state.filteredBooks = state.books.filter((book) => {
+      const title = String(book.title || "").toLowerCase();
+      const author = String(book.author || "").toLowerCase();
+      return title.includes(term) || author.includes(term);
+    });
+    renderBooks();
   }
 
   function renderOffers() {
@@ -242,6 +263,7 @@
     ]);
 
     state.books = Array.isArray(books) ? books : [];
+    state.filteredBooks = [...state.books];
     state.offers = Array.isArray(offers) ? offers : [];
     state.exchangeRequests = Array.isArray(exchangeRequests) ? exchangeRequests : [];
     state.users = Array.isArray(users) ? users : [];
@@ -263,6 +285,7 @@
       elements.bookAuthor.value = "";
       elements.bookYear.value = "";
       elements.bookIsbn.value = "";
+      elements.bookCoverImg.value = "";
       elements.bookDescription.value = "";
       return;
     }
@@ -273,6 +296,7 @@
     elements.bookAuthor.value = book.author || "";
     elements.bookYear.value = book.publicationYear || "";
     elements.bookIsbn.value = book.isbn || "";
+    elements.bookCoverImg.value = book.coverImg || "";
     elements.bookDescription.value = book.description || "";
   }
 
@@ -290,6 +314,7 @@
       author: elements.bookAuthor.value.trim(),
       publicationYear: elements.bookYear.value ? Number(elements.bookYear.value) : null,
       isbn: elements.bookIsbn.value.trim() || null,
+      coverImg: elements.bookCoverImg.value.trim() || null,
       description: elements.bookDescription.value.trim() || null
     };
 
@@ -308,7 +333,7 @@
 
     closeBookModal();
     state.books = await request("/admin/books");
-    renderBooks();
+    applyBooksFilter();
     renderDashboard();
   }
 
@@ -320,7 +345,7 @@
     await request(`/admin/books/${encodeURIComponent(id)}`, { method: "DELETE" });
     showToast("Book deleted.");
     state.books = await request("/admin/books");
-    renderBooks();
+    applyBooksFilter();
     renderDashboard();
   }
 
@@ -368,6 +393,18 @@
     });
 
     elements.addBookBtn.addEventListener("click", () => openBookModal(null));
+    if (elements.booksSearchInput) {
+      elements.booksSearchInput.addEventListener("input", applyBooksFilter);
+    }
+    if (elements.resetBooksSearchBtn) {
+      elements.resetBooksSearchBtn.addEventListener("click", () => {
+        if (!elements.booksSearchInput) {
+          return;
+        }
+        elements.booksSearchInput.value = "";
+        applyBooksFilter();
+      });
+    }
     elements.cancelBookModal.addEventListener("click", closeBookModal);
     elements.bookModal.addEventListener("click", (event) => {
       if (event.target === elements.bookModal) {
@@ -430,7 +467,7 @@
     elements.booksTableBody.addEventListener("click", async (event) => {
       const editBtn = event.target.closest("[data-edit-book]");
       if (editBtn) {
-        const book = state.books.find((item) => String(item.id) === editBtn.getAttribute("data-edit-book"));
+        const book = state.filteredBooks.find((item) => String(item.id) === editBtn.getAttribute("data-edit-book"));
         openBookModal(book || null);
         return;
       }

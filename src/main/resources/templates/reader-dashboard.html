@@ -96,149 +96,85 @@
             </div>
         </div>
 
-        <!-- Recent Books Exchanged Section -->
-        <div class="mb-12">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-900">Recent Books Exchanged</h2>
-                    <p class="mt-1 text-sm text-slate-600">Keep track of the stories currently in circulation.</p>
+        <!-- Dashboard Workspace -->
+        <section class="mb-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <article class="card p-6 lg:col-span-2">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Action Center</h2>
+                        <p class="mt-1 text-sm text-slate-600">Jump into the areas you use most without scrolling through demo content.</p>
+                    </div>
                 </div>
-                <a th:href="@{/my-offers}" class="text-rose-600 hover:text-rose-700 font-semibold text-sm flex items-center gap-1">
-                    See all activity
+
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <a th:href="@{/offers-browse}" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 hover:border-rose-200 hover:bg-rose-50/40 transition">
+                        <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Discover</p>
+                        <p class="mt-1 text-lg font-bold text-slate-900">Browse Offers</p>
+                        <p class="mt-1 text-sm text-slate-600">Find available books from other readers.</p>
+                    </a>
+
+                    <a th:href="@{/my-offers}" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 hover:border-rose-200 hover:bg-rose-50/40 transition">
+                        <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Manage</p>
+                        <p class="mt-1 text-lg font-bold text-slate-900">My Offers</p>
+                        <p class="mt-1 text-sm text-slate-600">Update, pause, or remove your active listings.</p>
+                    </a>
+
+                    <a th:href="@{/notification-center}" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 hover:border-rose-200 hover:bg-rose-50/40 transition">
+                        <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Stay Updated</p>
+                        <p class="mt-1 text-lg font-bold text-slate-900">Notifications</p>
+                        <p class="mt-1 text-sm text-slate-600">Track requests and delivery updates in one place.</p>
+                    </a>
+
+                    <a th:href="@{/profile}" class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 hover:border-rose-200 hover:bg-rose-50/40 transition">
+                        <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Account</p>
+                        <p class="mt-1 text-lg font-bold text-slate-900">Profile Settings</p>
+                        <p class="mt-1 text-sm text-slate-600">Keep your contact and location details updated.</p>
+                    </a>
+                </div>
+            </article>
+
+            <article class="card p-6">
+                <h3 class="text-xl font-bold text-slate-900">Reading Momentum</h3>
+                <p class="mt-1 text-sm text-slate-600">Your current community impact snapshot.</p>
+
+                <div class="mt-6 space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between text-sm font-medium text-slate-700">
+                            <span>Books Shared</span>
+                            <span th:text="${booksShared ?: '0'}">0</span>
+                        </div>
+                        <div class="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden">
+                            <div class="h-full bg-rose-500 rounded-full" style="width: 70%;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between text-sm font-medium text-slate-700">
+                            <span>Readers Reached</span>
+                            <span th:text="${readersReached ?: '0'}">0</span>
+                        </div>
+                        <div class="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden">
+                            <div class="h-full bg-blue-500 rounded-full" style="width: 62%;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between text-sm font-medium text-slate-700">
+                            <span>Active Exchanges</span>
+                            <span th:text="${activeExchanges ?: '0'}">0</span>
+                        </div>
+                        <div class="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden">
+                            <div class="h-full bg-emerald-500 rounded-full" style="width: 54%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <a th:href="@{/offers-browse}" class="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-rose-600 hover:text-rose-700">
+                    Explore new offers
                     <span class="material-symbols-rounded text-base">arrow_forward</span>
                 </a>
-            </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Book Card 1 -->
-                <div class="card overflow-hidden">
-                    <div class="bg-gradient-to-br from-rose-100 to-pink-100 h-40 flex items-center justify-center">
-                        <span class="material-symbols-rounded text-6xl text-rose-400">menu_book</span>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold text-slate-900 line-clamp-2">The Great Gatsby</h3>
-                        <p class="text-sm text-slate-600 mt-1">F. Scott Fitzgerald</p>
-                        <div class="flex items-center justify-between mt-3">
-                            <span class="badge badge-success">Completed</span>
-                            <span class="text-xs text-slate-500">2 days ago</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Book Card 2 -->
-                <div class="card overflow-hidden">
-                    <div class="bg-gradient-to-br from-blue-100 to-cyan-100 h-40 flex items-center justify-center">
-                        <span class="material-symbols-rounded text-6xl text-blue-400">menu_book</span>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold text-slate-900 line-clamp-2">Atomic Habits</h3>
-                        <p class="text-sm text-slate-600 mt-1">James Clear</p>
-                        <div class="flex items-center justify-between mt-3">
-                            <span class="badge badge-warning">In Transit</span>
-                            <span class="text-xs text-slate-500">Just now</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Book Card 3 -->
-                <div class="card overflow-hidden">
-                    <div class="bg-gradient-to-br from-amber-100 to-orange-100 h-40 flex items-center justify-center">
-                        <span class="material-symbols-rounded text-6xl text-amber-400">menu_book</span>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold text-slate-900 line-clamp-2">Dune</h3>
-                        <p class="text-sm text-slate-600 mt-1">Frank Herbert</p>
-                        <div class="flex items-center justify-between mt-3">
-                            <span class="badge badge-success">Completed</span>
-                            <span class="text-xs text-slate-500">1 week ago</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Book Card 4 -->
-                <div class="card overflow-hidden">
-                    <div class="bg-gradient-to-br from-purple-100 to-pink-100 h-40 flex items-center justify-center">
-                        <span class="material-symbols-rounded text-6xl text-purple-400">menu_book</span>
-                    </div>
-                    <div class="p-4">
-                        <h3 class="font-semibold text-slate-900 line-clamp-2">The Hobbit</h3>
-                        <p class="text-sm text-slate-600 mt-1">J.R.R. Tolkien</p>
-                        <div class="flex items-center justify-between mt-3">
-                            <span class="badge badge-success">Completed</span>
-                            <span class="text-xs text-slate-500">4 hours ago</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Community Recommendations Section -->
-        <div class="mb-12">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-900">Community Recommendations</h2>
-                    <p class="mt-1 text-sm text-slate-600">Books recommended by readers like you.</p>
-                </div>
-                <a th:href="@{/offers-browse}" class="text-rose-600 hover:text-rose-700 font-semibold text-sm flex items-center gap-1">
-                    Browse all offers
-                    <span class="material-symbols-rounded text-base">arrow_forward</span>
-                </a>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Recommendation Card 1 -->
-                <div class="card p-6">
-                    <div class="flex gap-4">
-                        <div class="w-20 h-28 bg-gradient-to-br from-rose-100 to-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <span class="material-symbols-rounded text-4xl text-rose-400">menu_book</span>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-start justify-between mb-2">
-                                <div>
-                                    <h3 class="font-semibold text-slate-900">Project Hail Mary</h3>
-                                    <p class="text-sm text-slate-600">Andy Weir</p>
-                                </div>
-                                <div class="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg">
-                                    <span class="material-symbols-rounded text-sm text-amber-500">star</span>
-                                    <span class="text-sm font-semibold text-amber-700">4.9</span>
-                                </div>
-                            </div>
-                            <p class="text-sm text-slate-600 line-clamp-2">A lone astronaut must save the earth in this stunning new sci-fi masterpiece.</p>
-                            <button class="mt-4 flex items-center gap-2 text-rose-600 hover:text-rose-700 font-semibold text-sm">
-                                <span class="material-symbols-rounded text-base">send</span>
-                                Request Exchange
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recommendation Card 2 -->
-                <div class="card p-6">
-                    <div class="flex gap-4">
-                        <div class="w-20 h-28 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <span class="material-symbols-rounded text-4xl text-blue-400">menu_book</span>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-start justify-between mb-2">
-                                <div>
-                                    <h3 class="font-semibold text-slate-900">Lessons in Chemistry</h3>
-                                    <p class="text-sm text-slate-600">Bonnie Garmus</p>
-                                </div>
-                                <div class="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg">
-                                    <span class="material-symbols-rounded text-sm text-amber-500">star</span>
-                                    <span class="text-sm font-semibold text-amber-700">4.7</span>
-                                </div>
-                            </div>
-                            <p class="text-sm text-slate-600 line-clamp-2">Chemistry, Elizabeth Zott is not your average woman, and she is about to change the world.</p>
-                            <button class="mt-4 flex items-center gap-2 text-rose-600 hover:text-rose-700 font-semibold text-sm">
-                                <span class="material-symbols-rounded text-base">send</span>
-                                Request Exchange
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            </article>
+        </section>
 
         <!-- Quick Stats -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
@@ -260,23 +196,23 @@
                 <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mb-3">
                     <span class="material-symbols-rounded text-green-600">check_circle</span>
                 </div>
-                <p class="text-2xl font-bold text-slate-900">8</p>
+                <p class="text-2xl font-bold text-slate-900" th:text="${activeExchanges ?: '0'}">0</p>
                 <p class="text-sm text-slate-600 mt-1">Exchanges Active</p>
             </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-8 mt-16">
+    <footer class="bg-[#f5edf1] border-t border-[#eadce3] py-8 mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-sm text-slate-600">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-gradient-to-br from-pink-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <span class="text-white text-sm font-bold">B</span>
+                    <div class="w-8 h-8 rounded-full bg-[#f43f6a] text-white flex items-center justify-center text-sm">
+                        <span>📖</span>
                     </div>
                     <span class="font-semibold text-slate-900">Binimoy</span>
                 </div>
-                <p>© 2025 Binimoy — Share Books, Share Knowledge.</p>
+                <p>© 2026 Binimoy. Stories move further when readers share.</p>
                 <div class="flex items-center gap-6">
                     <a href="#" class="hover:text-rose-600">Terms of Service</a>
                     <a href="#" class="hover:text-rose-600">Privacy Policy</a>

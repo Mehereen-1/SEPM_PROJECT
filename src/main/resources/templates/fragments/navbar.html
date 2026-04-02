@@ -169,7 +169,6 @@
                 <a th:href="@{/browse}" class="biblio-link">Books</a>
                 <a th:href="@{/offers-browse}" class="biblio-link">Offers</a>
                 <a sec:authorize="isAuthenticated()" th:href="@{/my-offers}" class="biblio-link">My Offers</a>
-                <a sec:authorize="isAuthenticated()" th:href="@{/exchange-center}" class="biblio-link">Exchange</a>
             </nav>
 
             <div class="biblio-actions">
@@ -193,7 +192,7 @@
                     </div>
                 </div>
 
-                <span sec:authorize="isAuthenticated()" class="biblio-user" th:text="${#authentication.name}">user</span>
+                <span sec:authorize="isAuthenticated()" class="biblio-user" th:text="${currentUserFirstName ?: (#strings.contains(#authentication.name, '@') ? #strings.substringBefore(#authentication.name, '@') : #authentication.name)}">user</span>
                 <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
                     <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button type="submit" class="biblio-logout">Logout</button>
@@ -387,7 +386,6 @@
                 <a th:href="@{/browse}" class="biblio-link">Books</a>
                 <a th:href="@{/offers-browse}" class="biblio-link">Offers</a>
                 <a th:href="@{/my-offers}" class="biblio-link">My Offers</a>
-                <a th:href="@{/exchange-center}" class="biblio-link">Exchange</a>
                 <a th:href="@{/notification-center}" class="biblio-link">Notifications</a>
                 <a th:href="@{/profile}" class="biblio-link">Profile</a>
             </nav>
@@ -408,7 +406,7 @@
                     </div>
                 </div>
 
-                <span class="biblio-user" th:text="${#authentication.name}">user</span>
+                <span class="biblio-user" th:text="${currentUserFirstName ?: (#strings.contains(#authentication.name, '@') ? #strings.substringBefore(#authentication.name, '@') : #authentication.name)}">user</span>
                 <form th:action="@{/logout}" method="post">
                     <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button type="submit" class="biblio-logout">Logout</button>
