@@ -1,4 +1,7 @@
 spring:
+  docker:
+    compose:
+      enabled: true
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/se_project_db}
     username: ${DB_USER:se_project_user}
