@@ -177,7 +177,7 @@
                     </div>
                 </div>
 
-                <span class="delivery-user" th:text="${#authentication.name}">user</span>
+                <span class="delivery-user" th:text="${currentUserFirstName ?: #authentication.name}">user</span>
                 <form th:action="@{/logout}" method="post">
                     <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button type="submit" class="delivery-logout">Logout</button>

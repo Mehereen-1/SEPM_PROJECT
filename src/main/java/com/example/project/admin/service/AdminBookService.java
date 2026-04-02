@@ -42,6 +42,7 @@ public class AdminBookService implements IAdminBookService {
         book.setPublisher(normalize(request.publisher()));
         book.setPublicationYear(request.publicationYear());
         book.setDescription(normalize(request.description()));
+        book.setCoverImg(normalize(request.coverImg()));
 
         return bookService.addBook(book)
             .<ResponseEntity<?>>map(saved -> ResponseEntity.status(HttpStatus.CREATED).body(toResponse(saved)))
@@ -76,6 +77,7 @@ public class AdminBookService implements IAdminBookService {
         existing.setPublisher(normalize(request.publisher()));
         existing.setPublicationYear(request.publicationYear());
         existing.setDescription(normalize(request.description()));
+        existing.setCoverImg(normalize(request.coverImg()));
 
         Book saved = bookService.saveBook(existing);
         return ResponseEntity.ok(toResponse(saved));
@@ -100,7 +102,8 @@ public class AdminBookService implements IAdminBookService {
             book.getIsbn(),
             book.getPublisher(),
             book.getPublicationYear(),
-            book.getDescription()
+            book.getDescription(),
+            book.getCoverImg()
         );
     }
 

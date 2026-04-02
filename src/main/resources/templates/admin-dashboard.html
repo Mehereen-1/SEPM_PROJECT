@@ -87,7 +87,12 @@
             <div class="panel-card">
                 <div class="panel-head">
                     <h2>Books</h2>
-                    <button class="btn primary" id="addBookBtn">Add Book</button>
+                    <div class="panel-head-actions">
+                        <label for="booksSearchInput" class="sr-only">Search books</label>
+                        <input type="text" id="booksSearchInput" class="books-search-input" placeholder="Search by title or author...">
+                        <button class="btn ghost" id="resetBooksSearchBtn" type="button">Reset</button>
+                        <button class="btn primary" id="addBookBtn" type="button">Add Book</button>
+                    </div>
                 </div>
                 <div class="table-wrap">
                     <table>
@@ -188,6 +193,7 @@
             <label>Author <input type="text" id="bookAuthor" required></label>
             <label>Year <input type="number" id="bookYear" min="1000" max="2999"></label>
             <label>ISBN <input type="text" id="bookIsbn"></label>
+            <label>Book Image URL <input type="url" id="bookCoverImg" placeholder="https://example.com/cover.jpg"></label>
             <label>Description <textarea id="bookDescription" rows="3"></textarea></label>
             <div class="modal-actions">
                 <button type="button" class="btn ghost" id="cancelBookModal">Cancel</button>
