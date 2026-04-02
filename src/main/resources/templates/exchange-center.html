@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bibliophile - User Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,0,0" rel="stylesheet" />
+    <title>Exchange Center - BookSwap</title>
+    <style>
+        :root {
+            --brand-main: #f43464;
+            --brand-secondary: #d12f58;
+            --paper: #f8fafc;
+            --line: #e2e8f0;
+            --text-main: #1f2937;
+            --text-soft: #64748b;
+            --card: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            color: var(--text-main);
+            background: var(--paper);
+            min-height: 100vh;
+        }
+
+        .page-wrap {
+            max-width: 1220px;
+            margin: 26px auto 56px auto;
+            padding: 0 18px;
+        }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 10px 18px rgba(38, 50, 72, 0.06);
+        }
+
+        .hero {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: 1.4fr 1fr;
+            margin-bottom: 18px;
+        }
+
+        .hero h2 {
+            margin: 0 0 6px 0;
+            color: #1f2c43;
+            font-size: 1.7rem;
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--text-soft);
+            line-height: 1.5;
+        }
+
+        .quick-stats {
+            display: grid;
+            gap: 10px;
+        }
+
+        .stat-chip {
+            border: 1px solid #d9e3f3;
+            border-radius: 12px;
+            padding: 10px;
+            background: #f6f9ff;
+            font-size: 0.9rem;
+            color: #2a466f;
+            font-weight: 700;
+        }
+
+        .compose-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr) auto;
+            gap: 10px;
+            align-items: end;
+            margin-top: 14px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field label {
+            font-size: 0.84rem;
+            color: #5d6f8d;
+            font-weight: 700;
+        }
+
+        .field select,
+        .field input {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 9px 10px;
+            background: #fff;
+            font-size: 0.92rem;
+        }
+
+        .primary-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            background: linear-gradient(120deg, var(--brand-main), var(--brand-secondary));
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(74, 111, 165, 0.3);
+        }
+
+        .primary-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.62;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status-banner {
+            margin: 14px 0 18px 0;
+            padding: 11px 13px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: #546584;
+            display: none;
+        }
+
+        .status-banner.success {
+            display: block;
+            background: #f0fbf4;
+            border-color: #b7e3c7;
+            color: #1e6f40;
+        }
+
+        .status-banner.error {
+            display: block;
+            background: #fff4f4;
+            border-color: #efc4c4;
+            color: #8f2f2f;
+        }
+
+        .status-banner.info {
+            display: block;
+            background: #f3f8ff;
+            border-color: #cadffd;
+            color: #2d5f99;
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 16px;
+        }
+
+        .offers-list,
+        .request-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .item-card {
+            border: 1px solid #dce5f3;
+            border-radius: 12px;
+            padding: 11px;
+            background: #fff;
+        }
+
+        .item-title {
+            margin: 0;
+            color: #25344f;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .item-meta {
+            margin: 6px 0;
+            color: #5f7190;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .ghost-btn {
+            border: 1px solid #c7d8f6;
+            background: #edf3ff;
+            color: #2f5ea0;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .request-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .request-status {
+            display: inline-block;
+            font-size: 0.78rem;
+            border-radius: 999px;
+            font-weight: 700;
+            padding: 4px 9px;
+            margin-top: 4px;
+        }
+
+        .status-pending {
+            background: #fff8e8;
+            border: 1px solid #f0d79b;
+            color: #8e6300;
+        }
+
+        .status-accepted {
+            background: #ecfbf1;
+            border: 1px solid #b9e4c9;
+            color: #1b6f3c;
+        }
+
+        .status-rejected {
+            background: #fff2f2;
+            border: 1px solid #efc1c1;
+            color: #8f2f2f;
+        }
+
+        .request-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .request-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .accept-btn {
+            background: #2f9055;
+        }
+
+        .reject-btn {
+            background: #cf4b4b;
+        }
+
+        .refresh-row {
+            margin-top: 14px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .empty {
+            border: 1px dashed #d6dfed;
+            border-radius: 10px;
+            padding: 12px;
+            color: #667896;
+            font-size: 0.9rem;
+            background: #fff;
+        }
+
+        @media (max-width: 980px) {
+            .hero,
+            .section-grid,
+            .request-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .compose-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .refresh-row {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: autoNavbar}"></div>
+<div th:replace="~{fragments/breadcrumb :: breadcrumb('Exchange Center')}"></div>
+
+<main class="page-wrap">
+    <section class="panel hero">
+        <div>
+            <h2>Manage Exchanges in One Place</h2>
+            <p>Create requests by matching your offer with another user\'s active offer, then track and respond to all exchange requests from here.</p>
+
+            <div class="compose-grid">
+                <div class="field">
+                    <label for="myOfferSelect">Your Active Offer</label>
+                    <select id="myOfferSelect"></select>
+                </div>
+
+                <div class="field">
+                    <label for="targetOfferSelect">Target Offer</label>
+                    <select id="targetOfferSelect"></select>
+                </div>
+
+                <div class="field">
+                    <label for="targetSearch">Search Target</label>
+                    <input id="targetSearch" type="text" placeholder="title, owner, author">
+                </div>
+
+                <button id="sendRequestBtn" class="primary-btn" type="button">Send Request</button>
+            </div>
+        </div>
+
+        <div class="quick-stats">
+            <div class="stat-chip" id="statActiveOffers">Active offers: ...</div>
+            <div class="stat-chip" id="statSent">Sent requests: ...</div>
+            <div class="stat-chip" id="statReceived">Received requests: ...</div>
+        </div>
+    </section>
+
+    <div id="statusBanner" class="status-banner" role="status" aria-live="polite"></div>
+
+    <section class="section-grid">
+        <article class="panel">
+            <h3>Available Target Offers</h3>
+            <div id="availableOffersList" class="offers-list"></div>
+        </article>
+
+        <article class="panel">
+            <h3>My Exchange Requests</h3>
+            <div class="request-columns">
+                <div>
+                    <h4>Sent</h4>
+                    <div id="sentRequestsList" class="request-list"></div>
+                </div>
+                <div>
+                    <h4>Received</h4>
+                    <div id="receivedRequestsList" class="request-list"></div>
+                </div>
+            </div>
+
+            <div class="refresh-row">
+                <button id="refreshBtn" class="ghost-btn" type="button">Refresh Requests</button>
+            </div>
+        </article>
+    </section>
+</main>
+
+<script src="/js/exchange-center.js"></script>
+</body>
+</html>

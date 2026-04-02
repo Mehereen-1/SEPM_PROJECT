@@ -34,3 +34,6 @@ build/
 
 ### env file ###
 .env
+
+### Docker local data ###
+.docker/postgres-data/
