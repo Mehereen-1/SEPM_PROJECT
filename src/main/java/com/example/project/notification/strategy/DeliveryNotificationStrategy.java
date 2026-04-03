@@ -8,6 +8,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 import com.example.project.entity.DeliveryOffer;
+import com.example.project.entity.DeliveryPickupUser;
 import com.example.project.entity.User;
 import com.example.project.notification.event.NotificationEvent;
 import com.example.project.notification.event.NotificationEventType;
@@ -66,22 +67,41 @@ public class DeliveryNotificationStrategy implements NotificationStrategy {
                 drafts.add(new NotificationDraft(sender, assigneeName + " accepted your delivery request.", NotificationType.DELIVERY, "delivery-assigned:" + deliveryOfferId + ":sender"));
                 drafts.add(new NotificationDraft(receiver, assigneeName + " accepted your delivery request.", NotificationType.DELIVERY, "delivery-assigned:" + deliveryOfferId + ":receiver"));
             }
-            case PICKUP_STARTED -> drafts.add(
-                new NotificationDraft(
-                    sender,
-                    "Delivery partner has started pickup for your book \"" + safeSenderBook(deliveryOffer) + "\".",
-                    NotificationType.DELIVERY,
-                    "pickup-started:" + deliveryOfferId + ":sender"
-                )
-            );
-            case BOOK_PICKED -> drafts.add(
-                new NotificationDraft(
-                    receiver,
-                    "Book \"" + safeSenderBook(deliveryOffer) + "\" has been picked and is on its way to you.",
-                    NotificationType.DELIVERY,
-                    "book-picked:" + deliveryOfferId + ":receiver"
-                )
-            );
+            case PICKUP_STARTED -> {
+                DeliveryPickupUser firstPickupUser = resolveFirstPickupUser(deliveryOffer);
+                if (firstPickupUser == DeliveryPickupUser.RECEIVER) {
+                    drafts.add(new NotificationDraft(
+                        receiver,
+                        "Delivery partner has picked up your book \"" + safeReceiverBook(deliveryOffer) + "\".",
+                        NotificationType.DELIVERY,
+                        "pickup-started:" + deliveryOfferId + ":receiver"
+                    ));
+                } else {
+                    drafts.add(new NotificationDraft(
+                        sender,
+                        "Delivery partner has picked up your book \"" + safeSenderBook(deliveryOffer) + "\".",
+                        NotificationType.DELIVERY,
+                        "pickup-started:" + deliveryOfferId + ":sender"
+                    ));
+                }
+            }
+            case BOOK_PICKED -> {
+                if (Boolean.TRUE.equals(deliveryOffer.getPickupACompleted()) && Boolean.TRUE.equals(deliveryOffer.getPickupBCompleted())) {
+                    drafts.add(new NotificationDraft(
+                        sender,
+                        "Book \"" + safeReceiverBook(deliveryOffer) + "\" has been picked and is on its way to you.",
+                        NotificationType.DELIVERY,
+                        "book-picked:" + deliveryOfferId + ":sender"
+                    ));
+                } else {
+                    drafts.add(new NotificationDraft(
+                        receiver,
+                        "Book \"" + safeSenderBook(deliveryOffer) + "\" has been picked and is on its way to you.",
+                        NotificationType.DELIVERY,
+                        "book-picked:" + deliveryOfferId + ":receiver"
+                    ));
+                }
+            }
             case DELIVERY_COMPLETED -> {
                 String senderBook = safeSenderBook(deliveryOffer);
                 String receiverBook = safeReceiverBook(deliveryOffer);
@@ -151,5 +171,12 @@ public class DeliveryNotificationStrategy implements NotificationStrategy {
         } catch (RuntimeException ex) {
             return "the requested book";
         }
+    }
+
+    private DeliveryPickupUser resolveFirstPickupUser(DeliveryOffer deliveryOffer) {
+        if (deliveryOffer == null || deliveryOffer.getFirstPickupUser() == null) {
+            return DeliveryPickupUser.REQUESTER;
+        }
+        return deliveryOffer.getFirstPickupUser();
     }
 }
