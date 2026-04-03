@@ -1,0 +1,47 @@
+flowchart TB
+    subgraph Frontend[Frontend Layer]
+        Browser[Web Browser]
+        Pages[Thymeleaf Templates\nindex, auth, offers, exchange, delivery, admin]
+        Scripts[Vanilla JS Modules\noffers.js, exchange-center.js,\ndelivery-dashboard.js, notifications.js, route-map.js]
+    end
+
+    subgraph Backend[Backend Layer - Spring Boot]
+        Security[Security Layer\nSecurityFilterChain + JwtAuthenticationFilter\nForm Login + Role Authorization]
+        Controllers[API & MVC Controllers\nAuth, Book, Offer, ExchangeRequest,\nDeliveryDashboard, Notification, Admin]
+        Services[Business Services\nUserService, BookService, DeliveryPricingService,\nAdminFacade/Services]
+        NotifyEngine[Notification Engine\nNotificationService\nObserver + Strategy]
+        Repositories[Repository Layer\nSpring Data JPA Repositories]
+    end
+
+    subgraph Data[Data Layer]
+        Postgres[(PostgreSQL\nusers, roles, books, offers, offer_images,\nexchange_requests, delivery_offers, notifications)]
+        UploadStore[(Local File Storage\nuploads/offers)]
+    end
+
+    subgraph External[External Services]
+        OSM[OpenStreetMap Tile Service]
+        Nominatim[Nominatim Geocoding API]
+        OSRM[OSRM Routing API]
+    end
+
+    Browser -->|GET HTML pages| Pages
+    Pages -->|loads static assets| Scripts
+
+    Browser -->|HTTP requests| Security
+    Security -->|authorized request| Controllers
+    Controllers -->|JSON/HTML response| Browser
+
+    Controllers --> Services
+    Controllers --> NotifyEngine
+    Services --> Repositories
+    Services --> NotifyEngine
+    NotifyEngine --> Repositories
+
+    Repositories --> Postgres
+
+    Controllers -->|store uploaded offer images| UploadStore
+    Browser -->|fetch /uploads/** resources| UploadStore
+
+    Scripts -->|map tiles| OSM
+    Scripts -->|reverse geocoding| Nominatim
+    Scripts -->|route polylines| OSRM

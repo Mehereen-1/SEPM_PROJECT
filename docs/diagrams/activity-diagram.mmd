@@ -1,0 +1,54 @@
+flowchart TD
+    Start((Start))
+    A[Reader browses offers and chooses target offer]
+    B[Reader selects one of own ACTIVE offers]
+    C[Submit POST /exchange-requests]
+    D{Valid request?\nnot own offer, both ACTIVE, non-duplicate}
+
+    E[Return validation error to reader]
+    F[Persist ExchangeRequest as PENDING]
+    G[Publish EXCHANGE_REQUEST_SENT notification]
+    H[Target owner views received requests]
+    I{Target owner decision}
+
+    J[Set request status to REJECTED]
+    K[Publish EXCHANGE_REJECTED notification]
+    EndRejected((End: Rejected Flow))
+
+    L[Set request status to ACCEPTED]
+    M[Set requesterOffer and targetOffer to RESERVED]
+    N{DeliveryOffer exists for request?}
+    O[Create DeliveryOffer as AVAILABLE]
+    P[Publish DELIVERY_CREATED notification]
+    Q[Publish EXCHANGE_ACCEPTED notification]
+
+    R[Delivery partner opens /delivery/offers]
+    S[Accept delivery task\nstatus -> PENDING, assignee set]
+    T[Publish DELIVERY_ASSIGNED notification]
+
+    U[Start first pickup\npickupACompleted = true]
+    V[Publish PICKUP_STARTED notification]
+
+    W[Complete second pickup\npickupBCompleted = true]
+    X[Publish BOOK_PICKED notification]
+
+    Y{Both pickups completed?}
+    Z[Complete delivery\nstatus -> COMPLETED]
+    AA[Publish DELIVERY_COMPLETED notification]
+    AB[Users view notifications and mark as read]
+    EndCompleted((End: Completed Flow))
+
+    Start --> A --> B --> C --> D
+    D -- No --> E --> EndRejected
+    D -- Yes --> F --> G --> H --> I
+
+    I -- Reject --> J --> K --> EndRejected
+    I -- Accept --> L --> M --> N
+
+    N -- No --> O --> P
+    N -- Yes --> Q
+    P --> Q
+
+    Q --> R --> S --> T --> U --> V --> W --> X --> Y
+    Y -- No --> W
+    Y -- Yes --> Z --> AA --> AB --> EndCompleted
