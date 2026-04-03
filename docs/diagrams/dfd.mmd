@@ -1,0 +1,88 @@
+flowchart LR
+    %% External entities
+    Reader[Reader]
+    DeliveryPartner[Delivery Partner]
+    Admin[Admin]
+    ApiClient[API Client]
+    MapServices[External Map Services\nOSM Tiles / Nominatim / OSRM]
+
+    %% Processes
+    P1([P1 Authentication & Role Routing])
+    P2([P2 Catalog & Offer Management])
+    P3([P3 Exchange Request Processing])
+    P4([P4 Delivery Lifecycle Management])
+    P5([P5 Notification Processing])
+    P6([P6 Admin Governance])
+    P7([P7 Route & Location Visualization])
+
+    %% Data stores
+    D1[(D1 Users & Roles)]
+    D2[(D2 Books Catalog)]
+    D3[(D3 Offers)]
+    D4[(D4 Offer Images Metadata)]
+    D5[(D5 Exchange Requests)]
+    D6[(D6 Delivery Offers)]
+    D7[(D7 Notifications)]
+    D8[(D8 Uploaded Offer Images\nFile Storage)]
+
+    %% Auth flows
+    Reader -->|register/login/profile data| P1
+    DeliveryPartner -->|register/login| P1
+    Admin -->|admin login| P1
+    ApiClient -->|JWT login/register requests| P1
+    P1 -->|user + role lookup| D1
+    D1 -->|user credentials + authorities| P1
+    P1 -->|session/JWT + role-based redirect| Reader
+    P1 -->|session/JWT + role-based redirect| DeliveryPartner
+    P1 -->|authenticated admin session| Admin
+
+    %% Reader offer and exchange flows
+    Reader -->|browse books, create/update/delete offers| P2
+    P2 -->|book queries| D2
+    D2 -->|catalog records| P2
+    P2 -->|offer CRUD| D3
+    D3 -->|offer records| P2
+    P2 -->|save image URLs| D4
+    P2 -->|store image files| D8
+    P2 -->|offers + cost info response| Reader
+
+    Reader -->|send/accept/reject exchange request| P3
+    P3 -->|create/update exchange request| D5
+    D5 -->|request records| P3
+    P3 -->|reserve/unblock related offers| D3
+    P3 -->|create delivery offer when accepted| D6
+    P3 -->|exchange status response| Reader
+
+    %% Delivery flows
+    DeliveryPartner -->|accept pickup/complete actions| P4
+    P4 -->|read exchange details| D5
+    P4 -->|status + pickup updates| D6
+    D6 -->|delivery task state| P4
+    P4 -->|delivery status response| DeliveryPartner
+
+    %% Route and location visualization
+    Reader -->|open map / route preview| P7
+    DeliveryPartner -->|open delivery map| P7
+    P7 -->|route + geocoding requests| MapServices
+    MapServices -->|tiles/routes/addresses| P7
+    P7 -->|distance, delivery cost, map view| Reader
+    P7 -->|distance, delivery cost, map view| DeliveryPartner
+
+    %% Notifications
+    P3 -->|publish exchange events| P5
+    P4 -->|publish delivery events| P5
+    P6 -->|publish admin/system events| P5
+    P5 -->|persist notifications| D7
+    D7 -->|notification list/summary| P5
+    P5 -->|notifications + unread counts| Reader
+    P5 -->|notifications + unread counts| DeliveryPartner
+    P5 -->|notifications + unread counts| Admin
+
+    %% Admin governance flows
+    Admin -->|manage books/users/offers/exchanges| P6
+    P6 -->|book CRUD| D2
+    P6 -->|user block/unblock| D1
+    P6 -->|offer moderation| D3
+    P6 -->|approve exchange requests| D5
+    P6 -->|delivery creation trigger| D6
+    P6 -->|admin API responses| Admin
