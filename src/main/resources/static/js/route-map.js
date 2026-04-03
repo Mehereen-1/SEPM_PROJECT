@@ -30,21 +30,32 @@
         return Number.isFinite(number) ? number : Number.NaN;
     }
 
-    function setDistanceAndCost(distanceNode, costNode, distanceKm) {
-        if (!distanceNode || !costNode) {
-            return;
+    function resolveDeliveryCost(distanceKm, deliveryCost, costPerKm) {
+        if (Number.isFinite(deliveryCost) && deliveryCost >= 0) {
+            return deliveryCost;
+        }
+        if (Number.isFinite(distanceKm) && distanceKm >= 0 && Number.isFinite(costPerKm) && costPerKm >= 0) {
+            return Math.round(distanceKm * costPerKm * 100) / 100;
+        }
+        return Number.NaN;
+    }
+
+    function setDistanceAndCost(distanceNode, costNode, distanceKm, deliveryCost) {
+        if (distanceNode) {
+            if (Number.isFinite(distanceKm) && distanceKm >= 0) {
+                distanceNode.textContent = distanceKm.toFixed(2) + ' km';
+            } else {
+                distanceNode.textContent = 'N/A';
+            }
         }
 
-        if (!Number.isFinite(distanceKm) || distanceKm < 0) {
-            distanceNode.textContent = 'N/A';
-            costNode.textContent = 'N/A';
-            return;
+        if (costNode) {
+            if (Number.isFinite(deliveryCost) && deliveryCost >= 0) {
+                costNode.textContent = 'BDT ' + deliveryCost.toFixed(2);
+            } else {
+                costNode.textContent = 'N/A';
+            }
         }
-
-        const roundedDistance = distanceKm.toFixed(2);
-        const cost = (distanceKm * 2).toFixed(2);
-        distanceNode.textContent = roundedDistance + ' km';
-        costNode.textContent = cost + ' taka';
     }
 
     function setRouteStatus(routeNode, text, isError) {
@@ -107,12 +118,12 @@
     async function loadRouteFromOsrm(map, from, to) {
         const response = await fetch(buildRouteUrl(from, to));
         if (!response.ok) {
-            throw new Error('OSRM request failed');
+            throw new Error('Route request failed');
         }
 
         const payload = await response.json();
         if (!payload.routes || payload.routes.length === 0) {
-            throw new Error('No route available from OSRM');
+            throw new Error('No route available');
         }
 
         const route = payload.routes[0];
@@ -125,7 +136,6 @@
         }).addTo(map);
 
         map.fitBounds(routeLayer.getBounds(), { padding: [35, 35] });
-        return route.distance / 1000;
     }
 
     function destroyMap(mapId) {
@@ -167,7 +177,7 @@
         };
 
         if (!isValidCoord(sender.lat, sender.lng) || !isValidCoord(receiver.lat, receiver.lng)) {
-            setDistanceAndCost(distanceNode, costNode, Number.NaN);
+            setDistanceAndCost(distanceNode, costNode, Number.NaN, Number.NaN);
             setRouteStatus(routeNode, 'Location not available for this user', true);
             if (senderAddressNode) {
                 senderAddressNode.textContent = '📍 Location not available for this user';
@@ -180,12 +190,12 @@
 
         destroyMap(config.mapId);
 
-        const map = L.map(mapNode).setView([sender.lat, sender.lng], 12);
+        const map = L.map(mapNode, { attributionControl: false }).setView([sender.lat, sender.lng], 12);
         mapRegistry.set(config.mapId, map);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
+            attribution: ''
         }).addTo(map);
 
         L.marker([sender.lat, sender.lng]).addTo(map).bindPopup(
@@ -204,8 +214,12 @@
         ]);
         map.fitBounds(bounds, { padding: [35, 35] });
 
-        setDistanceAndCost(distanceNode, costNode, toNumber(config.distanceKm));
-        setRouteStatus(routeNode, 'Loading route from OSRM...', false);
+        const distanceKm = toNumber(config.distanceKm);
+        const deliveryCost = toNumber(config.deliveryCost);
+        const costPerKm = toNumber(config.costPerKm);
+        const resolvedDeliveryCost = resolveDeliveryCost(distanceKm, deliveryCost, costPerKm);
+        setDistanceAndCost(distanceNode, costNode, distanceKm, resolvedDeliveryCost);
+        setRouteStatus(routeNode, 'Loading route preview...', false);
 
         await Promise.all([
             setAddress(senderAddressNode, sender.address, sender.lat, sender.lng),
@@ -213,11 +227,10 @@
         ]);
 
         try {
-            const distanceKm = await loadRouteFromOsrm(map, sender, receiver);
-            setDistanceAndCost(distanceNode, costNode, distanceKm);
-            setRouteStatus(routeNode, 'Shortest driving route loaded from OSRM.', false);
+            await loadRouteFromOsrm(map, sender, receiver);
+            setRouteStatus(routeNode, 'Route preview ready.', false);
         } catch (_) {
-            setRouteStatus(routeNode, 'Could not load live OSRM route. Showing estimated values.', true);
+            setRouteStatus(routeNode, 'Route preview unavailable. Showing saved delivery details.', true);
         }
 
         setTimeout(function () {
@@ -271,7 +284,9 @@
             routeStatusId: settings.routeStatusId || 'routeStatus',
             distanceValueId: settings.distanceValueId || 'distanceValue',
             costValueId: settings.costValueId || 'costValue',
-            distanceKm: settings.distanceKm || null
+            distanceKm: settings.distanceKm ?? null,
+            deliveryCost: settings.deliveryCost ?? settings.cost ?? null,
+            costPerKm: settings.costPerKm ?? null
         });
     }
 

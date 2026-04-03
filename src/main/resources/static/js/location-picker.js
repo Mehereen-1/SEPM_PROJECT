@@ -59,11 +59,11 @@
             lng: initialLng === null ? DEFAULT_COORDS.lng : initialLng
         };
 
-        const map = L.map(mapNode, { zoomControl: true }).setView([initial.lat, initial.lng], 13);
+        const map = L.map(mapNode, { zoomControl: true, attributionControl: false }).setView([initial.lat, initial.lng], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
+            attribution: ''
         }).addTo(map);
 
         const marker = L.marker([initial.lat, initial.lng], { draggable: true }).addTo(map);

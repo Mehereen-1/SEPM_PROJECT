@@ -1,5 +1,8 @@
 package com.example.project.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -7,11 +10,51 @@ public class DeliveryPricingService {
 
     private static final double COST_PER_KM = 2.0;
 
+    public RouteMetrics resolveRouteMetrics(
+        Double storedDistanceKm,
+        Double storedDeliveryCost,
+        Double lat1,
+        Double lng1,
+        Double lat2,
+        Double lng2
+    ) {
+        Double distanceKm = normalizeDistanceKm(storedDistanceKm);
+        if (distanceKm == null) {
+            distanceKm = normalizeDistanceKm(estimateDistanceKm(lat1, lng1, lat2, lng2));
+        }
+
+        Double deliveryCost = calculateCost(distanceKm);
+        if (deliveryCost == null) {
+            deliveryCost = normalizeMoney(storedDeliveryCost);
+        }
+
+        return new RouteMetrics(distanceKm, deliveryCost);
+    }
+
     public Double calculateCost(Double distanceKm) {
+        Double normalizedDistance = normalizeDistanceKm(distanceKm);
+        if (normalizedDistance == null) {
+            return null;
+        }
+        return normalizeMoney(normalizedDistance * COST_PER_KM);
+    }
+
+    public double getCostPerKm() {
+        return COST_PER_KM;
+    }
+
+    public Double normalizeDistanceKm(Double distanceKm) {
         if (distanceKm == null || distanceKm < 0) {
             return null;
         }
-        return distanceKm * COST_PER_KM;
+        return roundToTwoDecimals(distanceKm);
+    }
+
+    public Double normalizeMoney(Double amount) {
+        if (amount == null || amount < 0) {
+            return null;
+        }
+        return roundToTwoDecimals(amount);
     }
 
     public Double estimateDistanceKm(Double lat1, Double lng1, Double lat2, Double lng2) {
@@ -28,5 +71,17 @@ public class DeliveryPricingService {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         return earthRadiusKm * c;
+    }
+
+    private Double roundToTwoDecimals(Double value) {
+        return BigDecimal.valueOf(value)
+            .setScale(2, RoundingMode.HALF_UP)
+            .doubleValue();
+    }
+
+    public record RouteMetrics(
+        Double distanceKm,
+        Double deliveryCost
+    ) {
     }
 }

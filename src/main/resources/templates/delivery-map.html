@@ -35,9 +35,9 @@
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6">
             <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Exchange Delivery Route</h1>
-            <p class="mt-2 text-sm text-slate-600">Live route between sender and receiver using OpenStreetMap + OSRM.</p>
+            <p class="mt-2 text-sm text-slate-600">Live route between sender and receiver with synchronized delivery details.</p>
             <div id="routeStatus" class="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                Loading route from OSRM...
+                Loading route details...
             </div>
         </section>
 
@@ -64,7 +64,7 @@
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <dt class="text-slate-600">Cost</dt>
-                            <dd id="costValue" class="font-semibold text-rose-700" th:text="${deliveryCost != null ? #numbers.formatDecimal(deliveryCost, 1, 2) + ' taka' : 'N/A'}">N/A</dd>
+                            <dd id="costValue" class="font-semibold text-rose-700" th:text="${deliveryCost != null ? 'BDT ' + #numbers.formatDecimal(deliveryCost, 1, 2) : 'N/A'}">N/A</dd>
                         </div>
                     </dl>
                 </div>
@@ -98,7 +98,9 @@
             receiverLat: /*[[${receiverLat}]]*/ 23.8103,
             receiverLng: /*[[${receiverLng}]]*/ 90.4125,
             distanceKm: /*[[${distanceKm}]]*/ null,
-            deliveryCost: /*[[${deliveryCost}]]*/ null
+            deliveryCost: /*[[${deliveryCost}]]*/ null,
+            costPerKm: /*[[${costPerKm}]]*/ 2.0,
+            offerId: /*[[${deliveryOffer.id}]]*/ null
         };
     </script>
     <script src="/js/route-map.js"></script>
