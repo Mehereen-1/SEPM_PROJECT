@@ -59,15 +59,20 @@
                         <div class="flex items-center justify-between gap-3">
                             <span class="font-medium">Distance</span>
                             <span th:if="${offer.distanceKm != null}" th:text="${#numbers.formatDecimal(offer.distanceKm, 1, 2) + ' km'}">12.40 km</span>
-                            <span th:if="${offer.distanceKm == null}">Not available</span>
+                            <span th:if="${offer.distanceKm == null}">N/A</span>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <span class="font-medium">Delivery Fee</span>
-                            <span class="js-fee" th:attr="data-distance=${offer.distanceKm}">Calculating...</span>
+                            <span th:text="${offer.deliveryCost != null
+                                ? 'BDT ' + #numbers.formatDecimal(offer.deliveryCost, 1, 2)
+                                : (offer.distanceKm != null
+                                    ? 'BDT ' + #numbers.formatDecimal(offer.distanceKm * 2, 1, 2)
+                                    : 'N/A')}"
+                            >BDT 24.80</span>
                         </div>
                     </div>
 
-                    <div class="mt-5 flex flex-col gap-2" data-delivery-actions th:attr="data-delivery-id=${offer.id},data-delivery-status=${offer.status}">
+                    <div class="mt-5 flex flex-col gap-2" data-delivery-actions th:attr="data-delivery-id=${offer.id},data-delivery-status=${offer.status},data-first-pickup-name=${offer.firstPickupName},data-second-pickup-name=${offer.secondPickupName},data-final-dropoff-name=${offer.finalDropoffName}">
                         <form th:if="${offer.status == 'AVAILABLE'}" th:action="@{/delivery/accept/{id}(id=${offer.id})}" method="post" class="w-full">
                             <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-700">
                                 <span class="material-symbols-rounded text-base">check_circle</span>
@@ -82,7 +87,7 @@
                             data-delivery-action="start-pickup"
                         >
                             <span class="material-symbols-rounded text-base">play_circle</span>
-                            Start Pickup
+                            <span th:text="${'Pick up from ' + offer.firstPickupName}">Pick up from Reader A</span>
                         </button>
 
                         <button
@@ -92,7 +97,7 @@
                             data-delivery-action="book-picked"
                         >
                             <span class="material-symbols-rounded text-base">inventory_2</span>
-                            Book Picked
+                            <span th:text="${'Deliver to ' + offer.secondPickupName + ' and pick up from ' + offer.secondPickupName}">Deliver to Reader B and pick up from Reader B</span>
                         </button>
 
                         <button
@@ -102,7 +107,7 @@
                             data-delivery-action="mark-delivered"
                         >
                             <span class="material-symbols-rounded text-base">task_alt</span>
-                            Mark Delivered
+                            <span th:text="${'Deliver to ' + offer.finalDropoffName}">Deliver to Reader A</span>
                         </button>
 
                         <button
@@ -133,25 +138,6 @@
         </div>
     </main>
 
-    <script>
-        (function () {
-            const RATE_PER_KM = 2.0;
-            const feeNodes = document.querySelectorAll('.js-fee');
-
-            feeNodes.forEach(function (node) {
-                const value = node.getAttribute('data-distance');
-                const distance = value === null || value === '' ? Number.NaN : Number(value);
-
-                if (Number.isFinite(distance) && distance >= 0) {
-                    const fee = distance * RATE_PER_KM;
-                    node.textContent = 'BDT ' + fee.toFixed(2);
-                    return;
-                }
-
-                node.textContent = 'N/A';
-            });
-        })();
-    </script>
     <script src="/js/toast.js"></script>
     <script src="/js/delivery-dashboard.js"></script>
 </body>

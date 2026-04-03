@@ -1,9 +1,43 @@
 package com.example.project.controller;
 
-import com.example.project.entity.DeliveryOffer;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
-import com.example.project.entity.DeliveryOfferStatus;
+import static org.hamcrest.Matchers.notNullValue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
 import com.example.project.entity.Book;
+import com.example.project.entity.DeliveryOffer;
+import com.example.project.entity.DeliveryOfferStatus;
+import com.example.project.entity.DeliveryPickupUser;
 import com.example.project.entity.ExchangeRequest;
 import com.example.project.entity.ExchangeRequestStatus;
 import com.example.project.entity.Offer;
@@ -13,32 +47,6 @@ import com.example.project.repository.ExchangeRequestRepository;
 import com.example.project.repository.UserRepository;
 import com.example.project.security.SecurityUtil;
 import com.example.project.service.DeliveryPricingService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Integration tests for DeliveryDashboardController.
@@ -130,6 +138,9 @@ class DeliveryDashboardControllerIntegrationTest {
                 deliveryOffer.setStatus(DeliveryOfferStatus.AVAILABLE);
                 deliveryOffer.setDistanceKm(15.0);
                 deliveryOffer.setDeliveryFee(30.0);
+                deliveryOffer.setFirstPickupUser(DeliveryPickupUser.REQUESTER);
+                deliveryOffer.setPickupACompleted(false);
+                deliveryOffer.setPickupBCompleted(false);
                 deliveryOffer.setCreatedAt(LocalDateTime.now());
         }
 
@@ -329,6 +340,72 @@ class DeliveryDashboardControllerIntegrationTest {
         // ========== Complete Offer Tests ==========
 
         @Test
+        @DisplayName("Should complete first pickup and move to PICKUP_STARTED phase")
+        @WithMockUser(username = "johndelivery", roles = "DELIVERY_PARTNER")
+        void testStartPickup_Success() throws Exception {
+                deliveryOffer.setStatus(DeliveryOfferStatus.PENDING);
+                deliveryOffer.setAssignedDeliveryPartner(deliveryPartner);
+                deliveryOffer.setAcceptedAt(LocalDateTime.now());
+                deliveryOffer.setPickupACompleted(false);
+
+                when(securityUtil.getCurrentUsername()).thenReturn("johndelivery@example.com");
+                when(userRepository.findByEmail("johndelivery@example.com")).thenReturn(Optional.of(deliveryPartner));
+                when(deliveryOfferRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(deliveryOffer));
+                when(deliveryOfferRepository.save(any(DeliveryOffer.class))).thenReturn(deliveryOffer);
+
+                mockMvc.perform(post("/delivery/pickup-start/1").with(csrf()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.status").value("PICKUP_STARTED"));
+
+                verify(deliveryOfferRepository, times(1)).save(any(DeliveryOffer.class));
+        }
+
+        @Test
+        @DisplayName("Should complete second pickup and move to BOOK_PICKED phase")
+        @WithMockUser(username = "johndelivery", roles = "DELIVERY_PARTNER")
+        void testBookPicked_Success() throws Exception {
+                deliveryOffer.setStatus(DeliveryOfferStatus.PENDING);
+                deliveryOffer.setAssignedDeliveryPartner(deliveryPartner);
+                deliveryOffer.setAcceptedAt(LocalDateTime.now());
+                deliveryOffer.setPickupACompleted(true);
+                deliveryOffer.setPickupBCompleted(false);
+
+                when(securityUtil.getCurrentUsername()).thenReturn("johndelivery@example.com");
+                when(userRepository.findByEmail("johndelivery@example.com")).thenReturn(Optional.of(deliveryPartner));
+                when(deliveryOfferRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(deliveryOffer));
+                when(deliveryOfferRepository.save(any(DeliveryOffer.class))).thenReturn(deliveryOffer);
+
+                mockMvc.perform(post("/delivery/book-picked/1").with(csrf()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.status").value("BOOK_PICKED"));
+
+                verify(deliveryOfferRepository, times(1)).save(any(DeliveryOffer.class));
+        }
+
+        @Test
+        @DisplayName("Should reject second pickup when first pickup is not completed")
+        @WithMockUser(username = "johndelivery", roles = "DELIVERY_PARTNER")
+        void testBookPicked_BeforeFirstPickup() throws Exception {
+                deliveryOffer.setStatus(DeliveryOfferStatus.PENDING);
+                deliveryOffer.setAssignedDeliveryPartner(deliveryPartner);
+                deliveryOffer.setAcceptedAt(LocalDateTime.now());
+                deliveryOffer.setPickupACompleted(false);
+                deliveryOffer.setPickupBCompleted(false);
+
+                when(securityUtil.getCurrentUsername()).thenReturn("johndelivery@example.com");
+                when(userRepository.findByEmail("johndelivery@example.com")).thenReturn(Optional.of(deliveryPartner));
+                when(deliveryOfferRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(deliveryOffer));
+
+                mockMvc.perform(post("/delivery/book-picked/1").with(csrf()))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.success").value(false));
+
+                verify(deliveryOfferRepository, never()).save(any());
+        }
+
+        @Test
         @DisplayName("Should complete pending delivery offer successfully")
         @WithMockUser(username = "johndelivery", roles = "DELIVERY_PARTNER")
         void testCompleteOffer_Success() throws Exception {
@@ -336,6 +413,8 @@ class DeliveryDashboardControllerIntegrationTest {
                 deliveryOffer.setStatus(DeliveryOfferStatus.PENDING);
                 deliveryOffer.setAssignedDeliveryPartner(deliveryPartner);
                 deliveryOffer.setAcceptedAt(LocalDateTime.now());
+                deliveryOffer.setPickupACompleted(true);
+                deliveryOffer.setPickupBCompleted(true);
                 deliveryOffer.setBookPickedAt(LocalDateTime.now());
 
                 when(securityUtil.getCurrentUsername()).thenReturn("johndelivery@example.com");
@@ -358,6 +437,27 @@ class DeliveryDashboardControllerIntegrationTest {
                 // When & Then
                 mockMvc.perform(post("/delivery/complete/1").with(csrf()))
                                 .andExpect(status().isUnauthorized())
+                                .andExpect(jsonPath("$.success").value(false));
+
+                verify(deliveryOfferRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should not complete offer before second pickup is finished")
+        @WithMockUser(username = "johndelivery", roles = "DELIVERY_PARTNER")
+        void testCompleteOffer_BeforeSecondPickup() throws Exception {
+                deliveryOffer.setStatus(DeliveryOfferStatus.PENDING);
+                deliveryOffer.setAssignedDeliveryPartner(deliveryPartner);
+                deliveryOffer.setAcceptedAt(LocalDateTime.now());
+                deliveryOffer.setPickupACompleted(true);
+                deliveryOffer.setPickupBCompleted(false);
+
+                when(securityUtil.getCurrentUsername()).thenReturn("johndelivery@example.com");
+                when(userRepository.findByEmail("johndelivery@example.com")).thenReturn(Optional.of(deliveryPartner));
+                when(deliveryOfferRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(deliveryOffer));
+
+                mockMvc.perform(post("/delivery/complete/1").with(csrf()))
+                                .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.success").value(false));
 
                 verify(deliveryOfferRepository, never()).save(any());

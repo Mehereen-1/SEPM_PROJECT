@@ -192,6 +192,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 data-current-address="${escapeHtml(offer.currentUserAddress || '')}"
                 data-current-lat="${escapeHtml(offer.currentUserLatitude)}"
                 data-current-lng="${escapeHtml(offer.currentUserLongitude)}"
+                data-distance-km="${escapeHtml(offer.distanceKm)}"
+                data-delivery-cost="${escapeHtml(offer.deliveryCost)}"
+                data-cost-per-km="${escapeHtml(offer.costPerKm)}"
                 ${canOpenMap ? '' : 'disabled'}>
                 Show Map & Cost
               </button>
@@ -373,6 +376,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
+        const distanceKm = Number(mapButton.getAttribute('data-distance-km'));
+        const deliveryCost = Number(mapButton.getAttribute('data-delivery-cost'));
+        const costPerKm = Number(mapButton.getAttribute('data-cost-per-km'));
+
         await window.openRouteMap(
           currentLat,
           currentLng,
@@ -391,7 +398,11 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserName: mapButton.getAttribute('data-current-name') || 'You',
             currentUserAddress: mapButton.getAttribute('data-current-address') || null,
             otherUserName: mapButton.getAttribute('data-owner-name') || 'Offer Owner',
-            title: 'Exchange Route Map & Cost'
+            title: 'Exchange Route Map & Cost',
+            distanceKm: Number.isFinite(distanceKm) ? distanceKm : null,
+            deliveryCost: Number.isFinite(deliveryCost) ? deliveryCost : null,
+            cost: Number.isFinite(deliveryCost) ? deliveryCost : null,
+            costPerKm: Number.isFinite(costPerKm) ? costPerKm : null
           }
         );
       } catch (error) {
