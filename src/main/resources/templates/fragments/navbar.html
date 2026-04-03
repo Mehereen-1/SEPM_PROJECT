@@ -174,9 +174,7 @@
 
             <div class="biblio-actions">
                 <a sec:authorize="!isAuthenticated()" th:href="@{/login(role='BOOK_FRIEND')}" class="biblio-link">Login</a>
-                <a sec:authorize="!isAuthenticated()" th:href="@{/register(role='BOOK_FRIEND')}" class="biblio-icon-btn" aria-label="Sign up">
-                    <span class="material-symbols-rounded" style="font-size: 19px;">person_add</span>
-                </a>
+                
 
                 <div sec:authorize="isAuthenticated()" class="notif-shell" data-notification-shell>
                     <a th:href="@{/notification-center}" class="biblio-icon-btn notif-bell" data-notification-bell aria-label="Notifications">
