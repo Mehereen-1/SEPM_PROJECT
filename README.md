@@ -1,392 +1,378 @@
 # Binimoy (Bibliophile)
 
-**A location-aware community platform for exchanging physical books with trusted workflows for request, delivery, and completion.**
+A location-aware community platform for exchanging physical books with trusted request, delivery, and completion workflows.
 
-## 1. Project Title & Tagline
+This README is fully restructured and repository-aligned. It reflects the current architecture, source modules, endpoints, workflows, and contribution history.
+
+## Table of Contents
+
+1. Project Title and Tagline
+2. Executive Summary
+3. Product Overview
+4. Key Features (Grouped)
+5. System Architecture
+6. Technology Stack
+7. Project Structure (Real)
+8. Core Workflows
+9. Diagrams
+10. Screenshots
+11. Demo and Walkthrough
+12. Setup and Installation
+13. Environment Variables
+14. API Overview
+15. Scalability and Design Decisions
+16. Future Improvements and Roadmap
+17. Contribution Guidelines
+18. License
+
+## 1. Project Title and Tagline
 
 ### Project Title
 Binimoy (Bibliophile)
 
 ### Tagline
-A location-aware community platform for exchanging physical books with trusted workflows for request, delivery, and completion.
+A community-driven, role-aware platform that makes physical book exchange transparent, trackable, and operationally reliable.
 
 ## 2. Executive Summary
 
-Binimoy is a full-stack, role-aware book exchange platform that allows readers to list books, request exchanges, and complete the physical handoff through a delivery partner workflow. The system is built as a production-style Spring Boot application with a server-rendered frontend, role-based access control, delivery cost computation, and an event-driven notification subsystem.
+Binimoy is a full-stack Spring Boot application for exchanging physical books within a local community. It supports three operational roles:
+- Book friends (readers)
+- Delivery partners
+- Administrators
 
-This platform is designed for:
-- Student and campus communities
-- Local book-sharing networks
-- Teams evaluating end-to-end software engineering execution (product, architecture, testing, and DevOps)
+The platform covers the complete lifecycle:
+- Discovery and listing of books/offers
+- Exchange negotiation between users
+- Delivery execution with route-aware pricing
+- Event-driven user notifications
+- Admin moderation for governance and safety
 
 Why it matters:
-- It solves trust and logistics gaps in informal book sharing
-- It introduces operational accountability via status-driven exchange and delivery lifecycles
-- It demonstrates production-oriented architecture choices: layered backend design, explicit domain modeling, modular notification design, and CI-backed quality gates
-
-Key differentiator:
-- The exchange lifecycle is tightly integrated with geolocation-based delivery orchestration and event-driven notifications, while keeping modules loosely coupled through Observer + Strategy patterns.
+- Informal book-sharing channels usually stop at discovery and fail at fulfillment.
+- Binimoy adds accountability through explicit state transitions and role-based operations.
+- The codebase demonstrates production-grade engineering patterns: layered architecture, modular domains, deduped event handling, and automated CI checks.
 
 ## 3. Product Overview
 
 ### Real-World Problem
-Book sharing is often fragmented across informal channels. Typical pain points include:
-- No standardized request/approval workflow
-- Poor visibility into ownership, request status, and fulfillment progress
-- No operational mechanism for physical handoff
-- Weak moderation and governance controls
+Readers often have reusable books but no reliable way to exchange them safely and efficiently. Existing options are fragmented and usually lack:
+- Ownership-aware request handling
+- Delivery coordination
+- Role separation and moderation
+- Status visibility across the transaction lifecycle
 
-### Limitations of Common Alternatives
-Most lightweight listing solutions stop at discovery. They rarely provide:
-- Multi-role system behavior (reader, delivery partner, admin)
-- Request-to-delivery lifecycle controls
-- Route-aware delivery cost visibility
-- Notification and moderation infrastructure
+### Limitations of Typical Alternatives
+Common listing solutions provide catalog discovery but not operational closure. They usually do not include:
+- Multi-role lifecycle management
+- Structured exchange acceptance and rejection rules
+- Delivery progress management
+- Notification infrastructure with read-state tracking
 
-### How This System Solves It
-Binimoy combines a catalog + offer marketplace with an exchange workflow and delivery execution model:
-1. Users register as readers or delivery partners
-2. Readers create offers from the shared book catalog
-3. Exchange requests are sent and resolved by offer owners
-4. Accepted exchanges generate delivery offers
-5. Delivery partners execute a tracked two-pickup lifecycle and complete the final handoff
-6. Notification events keep participants informed throughout
+### How Binimoy Solves It
+Binimoy integrates marketplace, exchange, delivery, and notifications in one coherent workflow:
+1. Users sign up with role and location context.
+2. Readers create offers for catalog books.
+3. Exchange requests are initiated and resolved by offer owners.
+4. Accepted exchanges generate delivery offers.
+5. Delivery partners execute staged pickup and handoff actions.
+6. Notifications update participants and maintain action visibility.
 
-### High-Level Workflow
-- Discovery: Browse catalog and active offers
-- Negotiation: Request, accept, or reject exchange
-- Fulfillment: Accept delivery, perform pickups, complete delivery
-- Communication: Notification summary, unread tracking, and mark-read operations
-- Governance: Admin controls for books, offers, users, and exchange approvals
+### High-Level Flow
+- Discover books and offers
+- Negotiate exchange
+- Fulfill delivery lifecycle
+- Track events and unread updates
+- Moderate activity via admin controls
 
-## 4. Key Features
+## 4. Key Features (Grouped)
 
 ### Core Features
-- Role-aware onboarding and authentication for `BOOK_FRIEND`, `DELIVERY_PARTNER`, and `ADMIN`
-- Reader dashboard with profile metrics and quick-action workspace
-- Catalog browsing from persisted `books.csv` bootstrap data
-- Offer creation, listing, update, deletion, and image upload (`uploads/offers/{offerId}`)
-- Exchange request lifecycle: create, accept, reject, and personal request inboxes
+- Role-aware authentication and dashboard routing for BOOK_FRIEND, DELIVERY_PARTNER, and ADMIN
+- Book catalog loaded from CSV bootstrap data
+- Offer creation, browse, update, delete, and image upload
+- Exchange request lifecycle: create, accept, reject
+- Personal request views for sent and received requests
 
 ### Advanced Features
-- Delivery lifecycle with explicit operational stages:
-  - `AVAILABLE` -> `PENDING` (accepted by delivery partner)
-  - `PICKUP_STARTED` (first pickup done)
-  - `BOOK_PICKED` (second pickup done)
-  - `COMPLETED` (final drop-off)
-- Geospatial route support using user coordinates
-- Backend-synchronized route metrics (`distanceKm`, `deliveryCost`, `costPerKm`)
-- Interactive map flows with Leaflet + OSRM routing + Nominatim reverse geocoding
-- Admin module for moderation and platform governance:
-  - Manage books
-  - Block users
-  - Block/delete offers
-  - Review and approve exchange requests
+- Delivery lifecycle with sequential operational checkpoints
+- Route metric resolution with backend-calculated distance and delivery cost
+- Interactive map support through Leaflet and route services
+- Admin moderation actions for users, offers, books, and exchange requests
+- Strong ownership and status guards before state transitions
 
-### Intelligent / AI Features
-- No AI/ML module is implemented in this version.
-- Pricing and workflow behavior are deterministic and rule-based.
+### Intelligent and AI Features
+- No AI or ML module is currently implemented.
+- Decision logic is deterministic and rule-driven.
 
-### System / Engineering Features
-- Layered backend architecture (Controller -> Service -> Repository -> Entity)
-- Event-driven notification subsystem with:
-  - Observer pattern (`NotificationSubject`, `NotificationObserver`)
-  - Strategy pattern per event type (`Exchange`, `Delivery`, `System`)
-- Duplicate prevention at domain and persistence layers:
-  - Unique exchange pair constraint (`requester_offer_id`, `target_offer_id`)
-  - Notification deduplication via `(event_key, recipient_user_id)`
-- Security model:
-  - Spring Security role-based authorization
-  - Form login + JWT token support for API clients
-  - BCrypt encoding with controlled backward compatibility handling
-- CI pipeline on GitHub Actions (`.github/workflows/ci.yml`) for build + test gates
+### System and Engineering Features
+- Layered architecture: Controller -> Service -> Repository -> Entity
+- Notification subsystem built with Observer and Strategy patterns
+- Duplicate protection for exchange requests and notification events
+- Spring Security with form login and JWT-based API login support
+- CI pipeline on the dev branch with build and test execution
 
 ## 5. System Architecture
 
-### Architectural Style
-This project is implemented as a modular layered monolith:
-- Presentation layer: Thymeleaf templates + vanilla JS
-- API layer: Spring MVC REST controllers
-- Business layer: domain services and module-specific orchestrators
-- Data layer: Spring Data JPA repositories on PostgreSQL
+### Architecture Style
+Binimoy is implemented as a modular layered monolith with clear package boundaries:
+- Presentation layer: Thymeleaf templates and page-specific JavaScript
+- API layer: Spring MVC controllers (REST plus page routing)
+- Domain layer: service logic and strategy/facade orchestration
+- Persistence layer: Spring Data JPA with PostgreSQL
 
 ### Major Components and Responsibilities
-- `controller/`: user-facing and API endpoints for auth, offers, exchange, delivery, books
-- `admin/`: admin controllers, DTOs, services, facade, strategy-based actions
-- `notification/`: event models, strategies, observers, repository, service, web controllers
-- `service/`: shared domain services such as `UserService`, `BookService`, `DeliveryPricingService`
-- `security/`: authentication, JWT filter/utility, security helper methods
-- `repository/`: query contracts with fetch-optimized read paths
-- `loader/`: startup CSV ingestion for catalog bootstrap
+- controller: auth, home, books, offers, exchange requests, delivery dashboard, reader profile
+- admin: admin controller, facade, services, DTOs, and action strategies
+- notification: event models, observer pipeline, strategy registry, repository, REST and page controllers
+- security: custom user details, login success handler, JWT utility and filter
+- service: user service, book service, delivery pricing service
+- repository: fetch-optimized queries and lifecycle-specific lookups
+- loader: CSV bootstrap for book data
 
 ### Data Flow
-1. Client UI (Thymeleaf page + JS) issues request
-2. Security filter chain enforces route-level and role-level access
-3. Controller validates payload and identity context
-4. Service executes domain rules and persistence orchestration
-5. Repository handles query/write operations
-6. For eventful actions, notification event is published and persisted via strategy resolution
-7. Frontend polls notification summary endpoints and updates UI state
+1. Frontend view or script sends request.
+2. Security chain validates route and role access.
+3. Controller validates payload and ownership constraints.
+4. Services and repositories apply domain rules and persistence updates.
+5. Domain actions publish notification events.
+6. Observer resolves the correct notification strategy and persists drafts.
+7. Navbar and notification pages poll summary/list endpoints.
 
-### Scalability-Relevant Design Choices
-- Clear module boundaries reduce coupling inside the monolith
-- Event strategy registry allows new notification types without controller rewrites
-- Query methods use focused joins for reduced N+1 risk in high-read screens
-- Route metrics are normalized and persisted for backend/frontend consistency
+### Delivery Lifecycle Design Note
+Delivery transitions are intentionally modeled with both persisted and derived states:
+- Persisted statuses in delivery_offers.status: AVAILABLE, PENDING, COMPLETED
+- Derived operational states surfaced to clients: ACCEPTED, PICKUP_STARTED, BOOK_PICKED
+- Pickup progression controlled by firstPickupUser, pickupACompleted, pickupBCompleted, and timestamps
 
+### Architecture Placeholder
 ![System Architecture](./docs/architecture.png)
 
 ## 6. Technology Stack
 
-### Frontend
-- Thymeleaf templates
-- Vanilla JavaScript (module-per-page pattern)
-- Tailwind CSS (CDN usage in templates)
-- Custom CSS (`admin-dashboard.css`, `notifications.css`, `theme.scss`)
-- Leaflet + Leaflet Control Geocoder (map UI)
+| Category | Technologies |
+|---|---|
+| Frontend | Thymeleaf, Vanilla JavaScript, Tailwind CSS (CDN), Leaflet, Leaflet Control Geocoder |
+| Backend | Java 17, Spring Boot 4.0.3, Spring MVC, Spring Security, Spring Data JPA, Jakarta Validation |
+| Database | PostgreSQL (runtime), H2 (test profile) |
+| DevOps and Delivery | Maven Wrapper, Docker multi-stage build, Docker Compose, GitHub Actions CI |
+| Libraries | JJWT, Apache Commons CSV, Spring Security Test, MockMvc, Mockito |
+| AI and ML | Not implemented |
 
-### Backend
-- Java 17
-- Spring Boot 4.0.3
-- Spring MVC
-- Spring Security
-- Spring Validation
-- Spring Data JPA
-
-### Database
-- PostgreSQL (primary runtime database)
-- H2 (test profile)
-
-### DevOps / Deployment
-- Maven Wrapper (`mvnw`, `mvnw.cmd`)
-- Docker multi-stage build (`Dockerfile`)
-- Docker Compose orchestration (`compose.yaml`)
-- GitHub Actions CI (`.github/workflows/ci.yml`)
-
-### AI / ML
-- Not applicable in current implementation
-
-### Tools and Libraries
-- JJWT (`jjwt-api`, `jjwt-impl`, `jjwt-jackson`)
-- Apache Commons CSV
-- Mockito, MockMvc, Spring Security Test, Data JPA Test
-
-## 7. Project Structure (REAL)
+## 7. Project Structure (Real)
 
 ```text
-/root
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── docs/
-│   ├── project-prd.md
-│   ├── NOTIFICATION_SYSTEM_DOCUMENTATION.md
-│   ├── DELIVERY_TESTS_README.md
-│   ├── BOOK_OFFER_TESTING_REPORT.md
-│   ├── ADMIN_TESTING_README.md
-│   └── auth-testing.md
-├── src/
-│   ├── main/
-│   │   ├── java/com/example/project/
-│   │   │   ├── admin/
-│   │   │   │   ├── controller/
-│   │   │   │   ├── dto/
-│   │   │   │   ├── facade/
-│   │   │   │   ├── service/
-│   │   │   │   └── strategy/
-│   │   │   ├── config/
-│   │   │   ├── controller/
-│   │   │   ├── entity/
-│   │   │   ├── loader/
-│   │   │   ├── notification/
-│   │   │   │   ├── event/
-│   │   │   │   ├── model/
-│   │   │   │   ├── observer/
-│   │   │   │   ├── repository/
-│   │   │   │   ├── service/
-│   │   │   │   ├── strategy/
-│   │   │   │   └── web/
-│   │   │   ├── repository/
-│   │   │   ├── security/
-│   │   │   ├── service/
-│   │   │   └── ProjectApplication.java
-│   │   └── resources/
-│   │       ├── application.yaml
-│   │       ├── books.csv
-│   │       ├── static/
-│   │       │   ├── js/
-│   │       │   └── styles/
-│   │       └── templates/
-│   │           ├── fragments/
-│   │           └── error/
-│   └── test/
-│       ├── java/com/example/project/
-│       │   ├── admin/
-│       │   ├── controller/
-│       │   ├── notification/
-│       │   ├── repository/
-│       │   └── service/
-│       └── resources/
-│           └── application-test.yaml
-├── uploads/
-│   └── offers/
-├── compose.yaml
-├── Dockerfile
-├── pom.xml
-├── mvnw
-├── mvnw.cmd
-├── .env
-└── .env.local
+SEPM_PROJECT
+|-- .github/
+|   |-- workflows/
+|       |-- ci.yml
+|-- docs/
+|   |-- ADMIN_TESTING_README.md
+|   |-- auth-testing.md
+|   |-- BOOK_OFFER_TESTING_REPORT.md
+|   |-- DELIVERY_TESTS_README.md
+|   |-- NOTIFICATION_SYSTEM_DOCUMENTATION.md
+|   |-- project-prd.md
+|   |-- diagrams/
+|       |-- activity-diagram.mmd
+|       |-- architecture-diagram.mmd
+|       |-- class-diagram.mmd
+|       |-- dfd.mmd
+|       |-- use-case-diagram.mmd
+|       |-- user-flow-diagram.mmd
+|-- src/
+|   |-- main/
+|   |   |-- java/com/example/project/
+|   |   |   |-- admin/
+|   |   |   |-- config/
+|   |   |   |-- controller/
+|   |   |   |-- entity/
+|   |   |   |-- loader/
+|   |   |   |-- notification/
+|   |   |   |-- repository/
+|   |   |   |-- security/
+|   |   |   |-- service/
+|   |   |   |-- ProjectApplication.java
+|   |   |-- resources/
+|   |       |-- application.yaml
+|   |       |-- books.csv
+|   |       |-- static/
+|   |       |   |-- js/
+|   |       |   |-- styles/
+|   |       |-- templates/
+|   |           |-- error/
+|   |           |-- fragments/
+|   |-- test/
+|       |-- java/com/example/project/
+|       |   |-- admin/
+|       |   |-- controller/
+|       |   |-- notification/
+|       |   |-- repository/
+|       |   |-- service/
+|       |-- resources/
+|           |-- application-test.yaml
+|-- uploads/
+|   |-- offers/
+|-- compose.yaml
+|-- Dockerfile
+|-- pom.xml
+|-- mvnw
+|-- mvnw.cmd
+|-- .env
+|-- .env.local
 ```
 
-### Directory Responsibilities
-- `src/main/java/com/example/project/controller`: core user and domain endpoint orchestration
-- `src/main/java/com/example/project/admin`: moderation/governance module with facade and strategy abstractions
-- `src/main/java/com/example/project/notification`: decoupled notification event-processing engine
-- `src/main/resources/templates`: server-rendered views for reader, delivery, admin, auth, and notifications
-- `src/main/resources/static/js`: per-page client interaction logic and route map handling
-- `src/test/java`: unit, repository, and integration tests by domain area
-- `docs`: PRD and focused test/module documentation
+### Purpose of Major Directories
+- docs: PRD, testing reports, and architecture diagrams
+- src/main/java: backend business and infrastructure code
+- src/main/resources/templates: server-rendered pages
+- src/main/resources/static/js: frontend behavior per page
+- src/test/java: unit, integration, and repository-level tests
+- uploads: persisted offer images exposed by WebConfig
 
-### Key Files
-- `pom.xml`: dependency graph, Java/Maven build definition
-- `compose.yaml`: PostgreSQL + app service composition variables
-- `Dockerfile`: multi-stage JAR build and runtime image
-- `src/main/resources/application.yaml`: runtime datasource/JPA/server/admin config
-- `.github/workflows/ci.yml`: CI build and test automation
+### Key Files and Responsibilities
+- application.yaml: datasource, JPA, server port, admin bootstrap inputs
+- SecurityConfig.java: URL authorization matrix and filter chain
+- ExchangeRequestController.java: request lifecycle and delivery creation bridge
+- DeliveryDashboardController.java: delivery state transitions and route synchronization
+- NotificationServiceImpl.java: event publication and user-scoped read operations
+- compose.yaml: PostgreSQL and app service orchestration
+- Dockerfile: build and runtime images for application deployment
 
 ## 8. Core Workflows
 
-### User Onboarding Flow
-1. User opens `/auth` and selects role context
-2. Registration form captures identity + profile + coordinates/address
-3. `UserService` resolves/creates role and stores BCrypt-encoded credentials
-4. Login redirects users by role:
-   - Admin -> `/admin/dashboard`
-   - Delivery partner -> `/delivery/dashboard`
-   - Reader -> `/reader/dashboard`
+### User Onboarding Workflow
+1. User visits auth page and chooses role context.
+2. Registration captures identity and profile location.
+3. UserService resolves role aliases and persists user with encoded password.
+4. Login success handler redirects to role-specific dashboard.
 
-### Book Exchange Lifecycle
-1. Reader creates an offer from catalog (`POST /offers`)
-2. Offer owner and condition/note become visible in browse pages
-3. Another reader sends request (`POST /exchange-requests`)
-4. Target owner accepts/rejects (`PUT /exchange-requests/{id}/accept|reject`)
-5. On acceptance:
-   - Exchange request becomes `ACCEPTED`
-   - Both offers are marked `RESERVED`
-   - Delivery offer is created if absent
-   - Notifications are published
+### Exchange and Delivery Workflow
+1. Reader creates an active offer.
+2. Another reader submits exchange request.
+3. Target owner accepts or rejects request.
+4. On acceptance:
+   - Exchange status changes to ACCEPTED.
+   - Both offers move to RESERVED.
+   - Delivery offer is created if missing.
+5. Delivery partner accepts delivery task.
+6. First pickup is completed.
+7. Second pickup and handoff is completed.
+8. Final delivery completion is recorded.
 
-### Delivery Lifecycle
-1. Delivery partner accepts task (`POST /delivery/accept/{id}`)
-2. First pickup starts (`POST /delivery/pickup-start/{id}`)
-3. Second pickup and handoff progress (`POST /delivery/book-picked/{id}`)
-4. Final drop-off completes task (`POST /delivery/complete/{id}`)
-5. Route metrics (`distanceKm`, `deliveryCost`) are resolved server-side and synced to map/dashboard views
+### Backend Processing Workflow
+- Repository layer uses fetch joins for detail-heavy pages.
+- Delivery pricing service resolves normalized distance and cost.
+- Lifecycle normalizer keeps old records compatible with new pickup flags.
+- Admin action context dispatches strategy-based governance actions.
 
-### Notifications and Events
-1. Domain action occurs (exchange/delivery/system)
-2. `NotificationService` publishes `NotificationEvent`
-3. `DefaultNotificationSubject` dispatches event to observers
-4. `PersistingNotificationObserver` resolves matching strategy
-5. Strategy generates recipient-specific drafts with event keys
-6. Repository deduplicates and persists notifications
-7. UI consumes:
-   - `GET /notifications`
-   - `GET /notifications/summary`
-   - `PATCH /notifications/{id}`
-   - `PATCH /notifications`
+### Notification and Event Workflow
+1. Domain action publishes NotificationEventType.
+2. Notification subject distributes event to observers.
+3. Persisting observer resolves matching strategy.
+4. Strategy generates recipient-specific drafts and event keys.
+5. Repository deduplicates and stores notifications.
+6. Client polls summary and list endpoints; users mark one or all as read.
 
-## 9. Diagrams Section
+## 9. Diagrams
 
-![Class Diagram](./docs/class-diagram.png)
+![Class Diagram](./docs/diagrams/Class-Diagram.png)
 
-![DFD](./docs/dfd.png)
+![DFD](./docs/diagrams/dfd.png)
 
-![Use Case Diagram](./docs/use-case-diagram.png)
+![Use Case Diagram](./docs/diagrams/use-case.png)
 
-![Activity Diagram](./docs/activity-diagram.png)
+![Activity Diagram](./docs/diagrams/activity.png)
 
-![Architecture Diagram](./docs/architecture.png)
+![Architecture Diagram](./docs/diagrams/system-architecture.png)
+
+Source Mermaid files are maintained in docs/diagrams.
 
 ## 10. Screenshots
 
 ### Landing Page
-![Screenshot](./docs/screens/screen1.png)
+![Screenshot](./docs/screens/Landing.png)
 
-### Dashboard
-![Screenshot](./docs/screens/screen2.png)
+### Dashboards
+![Screenshot](./docs/screens/Dashboard.png)
 
-### Key Features UI
-![Screenshot](./docs/screens/screen3.png)
+### Key Feature Interfaces
+![Screenshot](./docs/screens/Books.png)
+![Screenshot](./docs/screens/Books.png)
 
-## 11. Demo / Walkthrough
+## 11. Demo and Walkthrough
 
-- Demo video: `Add demo link here`
+- Demo video link: Add your video URL here
 
-### Suggested Demo Highlights
-- Reader onboarding and profile location setup
-- Offer creation with image upload
-- Exchange request send/accept flow
-- Delivery partner lifecycle (pickup -> completion)
-- Notification center updates and mark-read actions
-- Admin moderation actions
+Suggested walkthrough sequence:
+1. Register reader and delivery partner accounts.
+2. Create offer and upload images.
+3. Send and accept exchange request.
+4. Accept and process delivery lifecycle actions.
+5. Inspect notifications in navbar and notification center.
+6. Show admin moderation actions and dashboard updates.
 
-## 12. Setup & Installation
+## 12. Setup and Installation
 
 ### Prerequisites
 - Java 17
-- Docker + Docker Compose (recommended for PostgreSQL)
 - Git
-- Internet access for map tile/geocoding services used in UI
+- Docker and Docker Compose (recommended)
+- Internet access for map tile and routing services
 
 ### Installation Steps
 
-#### 1. Clone the Repository
+#### Step 1: Clone the Repository
 ```bash
-git clone <your-repository-url>
+git clone <repository-url>
 cd SEPM_PROJECT
 ```
 
-#### 2. Configure Environment Variables
-Use `.env` (or adapt values from `.env.local`) in project root.
-
-Minimum required for local development:
+#### Step 2: Configure Environment
+Create or update .env in project root (example values):
 ```env
 DB_NAME=se_project_db
 DB_USER=se_project_user
 DB_PASSWORD=securepass
 DB_PORT=5432
+DB_CONTAINER_NAME=se_project_db
 APP_PORT=8080
+APP_CONTAINER_NAME=se_project_app
 SPRING_PROFILES_ACTIVE=dev
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=admin123
+APP_JWT_SECRET=<base64-encoded-secret>
+APP_JWT_EXPIRATION_MS=86400000
 ```
 
-#### 3. Start Database
-Option A: Start PostgreSQL via Docker Compose
+#### Step 3: Start Database
+Option A (recommended): Docker Compose database service
 ```bash
 docker compose up -d db
 ```
 
-Option B: Use a local PostgreSQL instance and set `DB_URL`, `DB_USER`, `DB_PASSWORD` accordingly.
+Option B: Use a local PostgreSQL instance and provide DB_URL, DB_USER, DB_PASSWORD.
 
-#### 4. Run Backend (Serves Frontend Too)
+#### Step 4: Run Application
 Windows:
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Linux/macOS:
+Linux or macOS:
 ```bash
 ./mvnw spring-boot:run
 ```
 
-#### 5. Open Application
-- Main app: `http://localhost:8080`
-- Reader entry: `/reader/dashboard`
-- Delivery entry: `/delivery/dashboard`
-- Admin entry: `/admin/dashboard`
+#### Step 5: Access Application
+- Home: http://localhost:8080
+- Reader Dashboard: /reader/dashboard
+- Delivery Dashboard: /delivery/dashboard
+- Admin Dashboard: /admin/dashboard
+
+### Running Full Stack with Docker Compose
+```bash
+docker compose up --build
+```
 
 ### Build and Test Commands
 Windows:
@@ -395,82 +381,104 @@ Windows:
 .\mvnw.cmd test
 ```
 
-Linux/macOS:
+Linux or macOS:
 ```bash
 ./mvnw clean package -DskipTests
 ./mvnw test
 ```
 
-### Running Frontend
-There is no separate frontend build/runtime process. Thymeleaf templates and static JS/CSS are served by the Spring Boot application.
+### Frontend Runtime Note
+There is no separate frontend build pipeline in this repository. Templates and static assets are served directly by Spring Boot.
 
 ## 13. Environment Variables
 
-| Variable | Required | Purpose |
+| Variable | Required | Description |
 |---|---|---|
-| `DB_URL` | No (default provided) | Full JDBC URL override (`jdbc:postgresql://...`) |
-| `DB_USER` | Yes | Database username |
-| `DB_PASSWORD` | Yes | Database password |
-| `DB_NAME` | Yes (compose) | PostgreSQL database name in Compose setup |
-| `DB_PORT` | Yes (compose) | Host port mapping for PostgreSQL |
-| `DB_CONTAINER_NAME` | No | Docker container naming for DB |
-| `APP_PORT` | No | Spring Boot server port (default `8080`) |
-| `APP_CONTAINER_NAME` | No | Docker container naming for app |
-| `SPRING_PROFILES_ACTIVE` | No | Active Spring profile (for example `dev`) |
-| `ADMIN_EMAIL` | Recommended | Bootstrap admin user email at startup |
-| `ADMIN_PASSWORD` | Recommended | Bootstrap admin user password at startup |
-| `APP_JWT_SECRET` | Optional but recommended for production | JWT signing secret (maps to `app.jwt.secret`) |
-| `APP_JWT_EXPIRATION_MS` | Optional | JWT token expiration in milliseconds |
+| DB_URL | Optional | Full JDBC URL override; defaults to localhost PostgreSQL |
+| DB_USER | Yes | Database username |
+| DB_PASSWORD | Yes | Database password |
+| DB_NAME | Yes for compose flow | PostgreSQL database name used by compose |
+| DB_PORT | Yes for compose flow | Host to container PostgreSQL port mapping |
+| DB_CONTAINER_NAME | Optional | Compose container name for database |
+| APP_PORT | Optional | Spring server port and compose app port mapping |
+| APP_CONTAINER_NAME | Optional | Compose container name for app |
+| SPRING_PROFILES_ACTIVE | Optional | Active Spring profile (for example dev or test) |
+| ADMIN_EMAIL | Recommended | Bootstrapped admin email read by AdminInitializer |
+| ADMIN_PASSWORD | Recommended | Bootstrapped admin password read by AdminInitializer |
+| APP_JWT_SECRET | Recommended in production | Base64 JWT signing secret used by JwtUtil |
+| APP_JWT_EXPIRATION_MS | Optional | JWT expiration window in milliseconds |
 
 ## 14. API Overview
 
 ### Authentication
-- `POST /api/auth/register` - API registration
-- `POST /api/auth/login` - JWT issuance
-- `POST /api/auth/logout` - context logout
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | /api/auth/register | Register user via API |
+| POST | /api/auth/login | Authenticate and return JWT token |
+| POST | /api/auth/logout | Clear authentication context |
 
 ### Books
-- `GET /books/browse` - List catalog books
-- `GET /books/{id}` - Fetch a single book
-- `POST /books` - Admin creates catalog book
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | /books/browse | List catalog books |
+| GET | /books/{id} | Get single book |
+| POST | /books | Add new book (admin-only) |
 
 ### Offers
-- `GET /offers` - Browse active offers
-- `GET /offers/my-active` - Current user active offers
-- `GET /offers/my` - Current user offer details
-- `POST /offers` - Create offer
-- `POST /offers/{offerId}/images` - Upload offer images
-- `PUT /offers/{offerId}` - Update own offer
-- `DELETE /offers/{offerId}` - Delete own offer
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | /offers | Browse active offers |
+| GET | /offers/my-active | Current user active offers |
+| GET | /offers/my | Current user offers with details |
+| POST | /offers | Create offer |
+| PUT | /offers/{offerId} | Update own offer |
+| DELETE | /offers/{offerId} | Delete own offer |
+| POST | /offers/{offerId}/images | Upload offer images |
 
 ### Exchange Requests
-- `POST /exchange-requests` - Create request
-- `PUT /exchange-requests/{id}/accept` - Accept request
-- `PUT /exchange-requests/{id}/reject` - Reject request
-- `GET /exchange-requests/my-requests` - Sent and received requests
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | /exchange-requests | Create exchange request |
+| PUT | /exchange-requests/{id}/accept | Accept request |
+| PUT | /exchange-requests/{id}/reject | Reject request |
+| GET | /exchange-requests/my-requests | Fetch sent and received requests |
 
 ### Delivery
-- `POST /delivery/accept/{id}` - Accept delivery task
-- `POST /delivery/pickup-start/{id}` - Complete first pickup
-- `POST /delivery/book-picked/{id}` - Complete second pickup
-- `POST /delivery/complete/{id}` - Complete final delivery
-- `GET /delivery/location-data/{id}` - Delivery route metrics payload
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | /delivery/accept/{id} | Assign delivery offer to current partner |
+| POST | /delivery/pickup-start/{id} | Complete first pickup |
+| POST | /delivery/book-picked/{id} | Complete second pickup and handoff |
+| POST | /delivery/complete/{id} | Complete final delivery |
+| GET | /delivery/location/{id} | Delivery map view page |
+| GET | /delivery/location-data/{id} | Delivery route and cost payload |
 
 ### Notifications
-- `GET /notifications` - Notification list (`unread`, `limit`)
-- `GET /notifications/summary` - Unread count + recent items
-- `PATCH /notifications/{id}` - Mark one as read
-- `PATCH /notifications` - Mark all as read
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | /notifications | List notifications (supports unread, limit) |
+| GET | /notifications/summary | Unread count and recent notifications |
+| PATCH | /notifications/{id} | Mark one notification as read |
+| PATCH | /notifications | Mark all notifications as read |
 
 ### Admin
-- `GET /admin/books`, `POST /admin/books`, `PUT /admin/books/{id}`, `DELETE /admin/books/{id}`
-- `GET /admin/offers`, `PUT /admin/offers/{id}/block`, `DELETE /admin/offers/{id}`
-- `GET /admin/users`, `PUT /admin/users/{id}/block`
-- `GET /admin/exchange-requests`, `PUT /admin/exchange-requests/{id}/approve`
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | /admin/books | List books |
+| POST | /admin/books | Create book |
+| PUT | /admin/books/{id} | Update book |
+| DELETE | /admin/books/{id} | Delete book |
+| GET | /admin/offers | List offers |
+| PUT | /admin/offers/{id}/block | Block offer |
+| DELETE | /admin/offers/{id} | Delete offer |
+| GET | /admin/users | List users |
+| PUT | /admin/users/{id}/block | Block user |
+| GET | /admin/exchange-requests | List exchange requests |
+| PUT | /admin/exchange-requests/{id}/approve | Approve exchange request |
 
-### Example Requests
+### Example Request Payloads
 
-#### Login
+Login:
 ```http
 POST /api/auth/login
 Content-Type: application/json
@@ -481,19 +489,7 @@ Content-Type: application/json
 }
 ```
 
-#### Create Offer
-```http
-POST /offers
-Content-Type: application/json
-
-{
-  "bookId": "book-uuid-or-id",
-  "condition": "Good",
-  "note": "Minimal highlighting"
-}
-```
-
-#### Create Exchange Request
+Create Exchange Request:
 ```http
 POST /exchange-requests
 Content-Type: application/json
@@ -504,67 +500,86 @@ Content-Type: application/json
 }
 ```
 
-#### Mark All Notifications Read
+Mark All Notifications Read:
 ```http
 PATCH /notifications
 ```
 
-## 15. Scalability & Design Decisions
+## 15. Scalability and Design Decisions
 
 ### Why This Architecture
-- A layered monolith was chosen to keep domain consistency high while implementing multiple complex business modules (offers, exchange, delivery, admin, notifications).
-- Separation into dedicated packages and modules (`admin`, `notification`, `security`) keeps growth manageable without early distributed-system complexity.
+- A layered modular monolith was selected to preserve strong consistency across exchange and delivery transitions.
+- It keeps deployment and debugging simple while still enforcing clear domain boundaries.
+- Strategy and facade patterns reduce controller complexity and support controlled extensibility.
 
-### Key Trade-offs
-- Pros:
-  - Faster iteration and easier debugging in a single deployable unit
-  - Strong transactional consistency around exchange and delivery state changes
-  - Lower infrastructure overhead for academic/early-stage product contexts
-- Cons:
-  - Independent scaling of subsystems is limited
-  - Notification handling is synchronous in-process today
-  - File uploads are local filesystem-based, not cloud object storage
+### Trade-offs
+Benefits:
+- Faster iteration and lower operational overhead
+- Easier end-to-end tracing in one deployable runtime
+- Strong transactional integrity for critical flows
 
-### Future Scalability Path
-- Extract notification publishing to asynchronous broker-backed processing
-- Move media storage to object storage (S3-compatible)
-- Introduce caching for heavy browse/query endpoints
-- Split admin/reporting concerns as standalone services if traffic or governance load increases
+Constraints:
+- Independent horizontal scaling per module is limited
+- Notification dispatch is currently in-process
+- Uploaded media is local filesystem based
 
-## 16. Future Improvements / Roadmap
+### Planned Scalability Path
+- Move notifications to asynchronous broker-backed processing
+- Migrate uploads to object storage
+- Add caching for browse-heavy endpoints
+- Introduce richer observability and telemetry
 
-- Add explicit API versioning and OpenAPI documentation
-- Introduce audit logs for all moderation and state transition actions
-- Add rate limiting and abuse controls on critical endpoints
-- Add dedicated delivery partner assignment heuristics (proximity, workload)
-- Add optional realtime updates (SSE/WebSocket) for notifications and delivery status
-- Provide observability stack (metrics, tracing, alerting)
-- Add license file and contributor covenant artifacts for open-source readiness
+## 16. Future Improvements and Roadmap
+
+- Add migration tooling (Flyway or Liquibase) for schema control
+- Add OpenAPI contracts and API versioning
+- Add rate limiting and abuse prevention on sensitive endpoints
+- Add near-real-time updates with SSE or WebSocket
+- Improve delivery partner assignment heuristics
+- Introduce monitoring dashboards for SLA and throughput metrics
 
 ## 17. Contribution Guidelines
 
 ### How to Contribute
-1. Fork the repository
-2. Create a feature branch from `dev`
-3. Implement changes with tests
-4. Run local checks (`mvnw test`)
-5. Open a pull request to `dev`
+1. Fork repository.
+2. Create a branch from dev.
+3. Implement changes with tests.
+4. Run local verification.
+5. Open pull request to dev.
 
-### Suggested Branching Strategy
-- `dev`: integration branch (CI currently targets this branch)
-- `feature/<short-topic>`: new features
-- `fix/<short-topic>`: bug fixes
-- `docs/<short-topic>`: documentation-only changes
+### Branching Strategy
+- dev: integration branch
+- feature/<topic>: new features
+- fix/<topic>: bug fixes
+- docs/<topic>: documentation changes
 
-### Contribution Standards
-- Keep controller logic thin; place business rules in services
-- Add/extend tests for every behavior change
-- Preserve API response contracts used by existing frontend scripts
-- Keep README and `docs/` aligned with implementation changes
+### Quality Expectations
+- Keep business rules in service or strategy layers.
+- Keep controller logic thin and explicit.
+- Add or update tests for behavior changes.
+- Maintain compatibility with existing frontend API contracts.
+- Keep documentation synchronized with implementation changes.
+
+### Team Contribution Highlights (Git History Based)
+
+Contributor summary was derived from repository commit history up to April 4, 2026.
+
+| Contributor | Key Impact Areas | Representative Contributions |
+|---|---|---|
+| Adiba Tahsin | Notification architecture, delivery lifecycle refinements, security and test improvements | Notification subsystem enhancements, delivery notification sequencing, auth and notification tests |
+| Ayesha Mehereen and Mehereen-1 (same email identity) | Admin module, UI and templates, exchange and offer flow, testing and deployment polish | Admin action and dashboard workflows, UI fixes, books/offers/exchange test coverage |
+
+### Verification Commands Used for Team Mapping
+- git shortlog -sne --all
+- git log --all --author=<email>
+- file-area aggregation over git log --name-only
 
 ## 18. License
 
-No explicit license file is currently present in this repository.
+No explicit LICENSE file is currently present in this repository.
 
-Until a license is added, treat the codebase as proprietary/all-rights-reserved by default.
-For open-source distribution, add a `LICENSE` file (for example MIT, Apache-2.0, or GPL) and update this section accordingly.
+Until a license is added, treat this codebase as all rights reserved by default.
+
+Recommended action:
+1. Add a LICENSE file (for example MIT, Apache-2.0, or GPL-3.0).
+2. Update this section to match the chosen license.

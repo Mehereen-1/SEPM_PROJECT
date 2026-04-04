@@ -1,88 +1,90 @@
 flowchart LR
     %% External entities
-    Reader[Reader]
+    Visitor[Visitor]
+    Reader[Reader / Book Friend]
     DeliveryPartner[Delivery Partner]
     Admin[Admin]
-    ApiClient[API Client]
-    MapServices[External Map Services\nOSM Tiles / Nominatim / OSRM]
+    MapAPIs[Map Services\nOSM + Nominatim + OSRM]
 
     %% Processes
-    P1([P1 Authentication & Role Routing])
-    P2([P2 Catalog & Offer Management])
-    P3([P3 Exchange Request Processing])
-    P4([P4 Delivery Lifecycle Management])
-    P5([P5 Notification Processing])
-    P6([P6 Admin Governance])
-    P7([P7 Route & Location Visualization])
+    P1((P1 Authenticate User))
+    P2((P2 Manage Profile))
+    P3((P3 Manage Books and Offers))
+    P4((P4 Process Exchange Requests))
+    P5((P5 Manage Delivery Lifecycle))
+    P6((P6 Handle Notifications))
+    P7((P7 Admin Moderation))
+    P8((P8 Render Route and Cost))
 
     %% Data stores
-    D1[(D1 Users & Roles)]
-    D2[(D2 Books Catalog)]
-    D3[(D3 Offers)]
-    D4[(D4 Offer Images Metadata)]
-    D5[(D5 Exchange Requests)]
-    D6[(D6 Delivery Offers)]
-    D7[(D7 Notifications)]
-    D8[(D8 Uploaded Offer Images\nFile Storage)]
+    D1[(D1 Users)]
+    D2[(D2 Roles)]
+    D3[(D3 Books)]
+    D4[(D4 Offers)]
+    D5[(D5 Offer Images Metadata)]
+    D6[(D6 Exchange Requests)]
+    D7[(D7 Delivery Offers)]
+    D8[(D8 Notifications)]
+    D9[(D9 Uploaded Offer Files)]
 
-    %% Auth flows
-    Reader -->|register/login/profile data| P1
-    DeliveryPartner -->|register/login| P1
-    Admin -->|admin login| P1
-    ApiClient -->|JWT login/register requests| P1
-    P1 -->|user + role lookup| D1
-    D1 -->|user credentials + authorities| P1
-    P1 -->|session/JWT + role-based redirect| Reader
-    P1 -->|session/JWT + role-based redirect| DeliveryPartner
-    P1 -->|authenticated admin session| Admin
+    Visitor -->|Register or Login request| P1
+    Reader -->|Login credentials| P1
+    DeliveryPartner -->|Login credentials| P1
+    Admin -->|Admin login credentials| P1
 
-    %% Reader offer and exchange flows
-    Reader -->|browse books, create/update/delete offers| P2
-    P2 -->|book queries| D2
-    D2 -->|catalog records| P2
-    P2 -->|offer CRUD| D3
-    D3 -->|offer records| P2
-    P2 -->|save image URLs| D4
-    P2 -->|store image files| D8
-    P2 -->|offers + cost info response| Reader
+    P1 -->|Find user by email| D1
+    P1 -->|Resolve authorities| D2
+    P1 -->|Session or JWT and role redirect| Reader
+    P1 -->|Session or JWT and role redirect| DeliveryPartner
+    P1 -->|Authenticated admin session| Admin
 
-    Reader -->|send/accept/reject exchange request| P3
-    P3 -->|create/update exchange request| D5
-    D5 -->|request records| P3
-    P3 -->|reserve/unblock related offers| D3
-    P3 -->|create delivery offer when accepted| D6
-    P3 -->|exchange status response| Reader
+    Reader -->|Profile details + coordinates| P2
+    P2 -->|Update profile| D1
+    P2 -->|Profile update response| Reader
 
-    %% Delivery flows
-    DeliveryPartner -->|accept pickup/complete actions| P4
-    P4 -->|read exchange details| D5
-    P4 -->|status + pickup updates| D6
-    D6 -->|delivery task state| P4
-    P4 -->|delivery status response| DeliveryPartner
+    Visitor -->|Browse catalog and offers| P3
+    Reader -->|Create/Edit/Delete offer| P3
+    P3 -->|Read books| D3
+    P3 -->|Persist offers| D4
+    P3 -->|Persist image URLs| D5
+    P3 -->|Store uploaded images| D9
+    P3 -->|Book/offer list response| Visitor
+    P3 -->|Book/offer list response| Reader
 
-    %% Route and location visualization
-    Reader -->|open map / route preview| P7
-    DeliveryPartner -->|open delivery map| P7
-    P7 -->|route + geocoding requests| MapServices
-    MapServices -->|tiles/routes/addresses| P7
-    P7 -->|distance, delivery cost, map view| Reader
-    P7 -->|distance, delivery cost, map view| DeliveryPartner
+    Reader -->|Send/Accept/Reject exchange request| P4
+    P4 -->|Create/Update request| D6
+    P4 -->|Reserve linked offers| D4
+    P4 -->|Create delivery offer on acceptance| D7
+    P4 -->|Exchange status response| Reader
+    P4 -->|Publish exchange events| P6
 
-    %% Notifications
-    P3 -->|publish exchange events| P5
-    P4 -->|publish delivery events| P5
-    P6 -->|publish admin/system events| P5
-    P5 -->|persist notifications| D7
-    D7 -->|notification list/summary| P5
-    P5 -->|notifications + unread counts| Reader
-    P5 -->|notifications + unread counts| DeliveryPartner
-    P5 -->|notifications + unread counts| Admin
+    DeliveryPartner -->|Accept/Pickup/Complete delivery| P5
+    P5 -->|Read exchange context| D6
+    P5 -->|Update lifecycle status and timestamps| D7
+    P5 -->|Delivery status response| DeliveryPartner
+    P5 -->|Publish delivery events| P6
 
-    %% Admin governance flows
-    Admin -->|manage books/users/offers/exchanges| P6
-    P6 -->|book CRUD| D2
-    P6 -->|user block/unblock| D1
-    P6 -->|offer moderation| D3
-    P6 -->|approve exchange requests| D5
-    P6 -->|delivery creation trigger| D6
-    P6 -->|admin API responses| Admin
+    Reader -->|Open map and route preview| P8
+    DeliveryPartner -->|Open delivery route page| P8
+    P8 -->|Read delivery distance/cost context| D7
+    P8 -->|Route/geocoding requests| MapAPIs
+    MapAPIs -->|Tiles/routes/addresses| P8
+    P8 -->|Map + distance + cost response| Reader
+    P8 -->|Map + distance + cost response| DeliveryPartner
+
+    Reader -->|Fetch and mark notifications| P6
+    DeliveryPartner -->|Fetch and mark notifications| P6
+    Admin -->|Fetch and mark notifications| P6
+    P6 -->|Persist notification events| D8
+    P6 -->|Notification list/summary response| Reader
+    P6 -->|Notification list/summary response| DeliveryPartner
+    P6 -->|Notification list/summary response| Admin
+
+    Admin -->|Manage books/users/offers/exchanges| P7
+    P7 -->|Book CRUD| D3
+    P7 -->|Block users| D1
+    P7 -->|Block/Delete offers| D4
+    P7 -->|Approve exchange requests| D6
+    P7 -->|Generate delivery offer if needed| D7
+    P7 -->|Publish admin-triggered events| P6
+    P7 -->|Admin operation response| Admin

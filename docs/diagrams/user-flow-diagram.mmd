@@ -1,79 +1,84 @@
 flowchart LR
-    Landing[Landing Page /]
-    AuthPage[Auth Page /auth\nSign In + Sign Up]
-    RegisterAction[Submit Registration\nwith role + location]
-    LoginAction[Submit Login]
+    Landing[Landing /]
+    PublicBooks[Books Browse /browse]
+    PublicOffers[Offers Browse /offers-browse]
+
+    Auth[Auth /auth]
+    SignUp[Sign Up]
+    SignIn[Sign In]
     AuthValid{Credentials valid?}
-    RoleGate{Role after authentication}
+    RoleRoute{Resolved role}
 
-    ReaderDash[Reader Dashboard\n/reader/dashboard]
-    DeliveryDash[Delivery Dashboard\n/delivery/dashboard]
-    AdminDash[Admin Dashboard\n/admin/dashboard]
+    ReaderDash[Reader Dashboard /reader/dashboard]
+    DeliveryDash[Delivery Dashboard /delivery/dashboard]
+    AdminDash[Admin Dashboard /admin/dashboard]
 
-    BrowseBooks[Browse Books\n/browse]
-    BrowseOffers[Browse Offers\n/offers-browse]
-    CreateOffer[Create Offer\n/offers-create]
-    MyOffers[My Offers\n/my-offers]
-    ExchangeCenter[Exchange Center\n/exchange-center]
-    Profile[Profile\n/profile]
-    NotifCenter[Notification Center\n/notification-center]
+    CreateOffer[Create Offer /offers-create]
+    MyOffers[My Offers /my-offers]
+    ExchangeCenter[Exchange Center /exchange-center]
+    Profile[Profile /profile]
+    Notifications[Notification Center /notification-center]
 
     SendRequest[Send Exchange Request]
-    ReviewRequest{Incoming request pending?}
-    RequestAccepted[Request Accepted\nOffers Reserved + Delivery Created]
-    RequestRejected[Request Rejected]
+    ReviewDecision{Received request action}
+    ExchangeAccepted[Exchange Accepted]
+    ExchangeRejected[Exchange Rejected]
 
-    DeliveryAvailable[Delivery Available List\n/delivery/offers]
-    AcceptDelivery[Accept Delivery Task]
-    DeliveryPending[Pending Deliveries\n/delivery/pending]
-    DeliveryMap[Delivery Map\n/delivery/location/{id}]
-    StartPickup[Start First Pickup]
-    BookPicked[Complete Second Pickup]
-    CompleteDelivery[Mark Delivered]
-    DeliveryDone[Completed Deliveries\n/delivery/completed]
+    DeliveryAvailable[Delivery Offers /delivery/offers]
+    DeliveryPending[Delivery Pending /delivery/pending]
+    DeliveryMap[Delivery Map /delivery/location/{id}]
+    Pickup1[Start First Pickup]
+    Pickup2[Complete Second Pickup]
+    DeliveryComplete[Complete Delivery]
+    DeliveryDone[Completed Deliveries /delivery/completed]
 
     AdminBooks[Manage Books]
     AdminUsers[Manage Users]
     AdminOffers[Manage Offers]
     AdminExchanges[Manage Exchange Requests]
-    AdminApprove[Approve Exchange]
 
-    LoginError[Show Login Error\nStay on Auth Page]
+    AuthError[Stay on Auth with error]
 
-    Landing --> AuthPage
-    AuthPage --> RegisterAction
-    AuthPage --> LoginAction
-    RegisterAction --> AuthPage
-    LoginAction --> AuthValid
-    AuthValid -- No --> LoginError --> AuthPage
-    AuthValid -- Yes --> RoleGate
+    Landing --> PublicBooks
+    Landing --> PublicOffers
+    Landing --> Auth
 
-    RoleGate -- BOOK_FRIEND --> ReaderDash
-    RoleGate -- DELIVERY_PARTNER --> DeliveryDash
-    RoleGate -- ADMIN --> AdminDash
+    Auth --> SignUp
+    Auth --> SignIn
+    SignUp --> AuthValid
+    SignIn --> AuthValid
 
-    ReaderDash --> BrowseBooks
-    ReaderDash --> BrowseOffers
-    ReaderDash --> ExchangeCenter
+    AuthValid -- No --> AuthError --> Auth
+    AuthValid -- Yes --> RoleRoute
+
+    RoleRoute -- Reader/Book Friend --> ReaderDash
+    RoleRoute -- Delivery Partner --> DeliveryDash
+    RoleRoute -- Admin --> AdminDash
+
+    ReaderDash --> PublicBooks
+    ReaderDash --> PublicOffers
+    ReaderDash --> CreateOffer
     ReaderDash --> MyOffers
+    ReaderDash --> ExchangeCenter
     ReaderDash --> Profile
-    ReaderDash --> NotifCenter
+    ReaderDash --> Notifications
 
-    BrowseBooks --> CreateOffer
-    CreateOffer --> BrowseOffers
-    BrowseOffers --> SendRequest --> ExchangeCenter
-    ExchangeCenter --> ReviewRequest
-    ReviewRequest -- Accept --> RequestAccepted --> NotifCenter
-    ReviewRequest -- Reject --> RequestRejected --> NotifCenter
-    MyOffers --> BrowseOffers
-    Profile --> ReaderDash
+    PublicBooks --> CreateOffer
+    CreateOffer --> MyOffers
+    MyOffers --> PublicOffers
 
-    DeliveryDash --> DeliveryAvailable --> AcceptDelivery --> DeliveryPending
-    DeliveryPending --> DeliveryMap
-    DeliveryPending --> StartPickup --> BookPicked --> CompleteDelivery --> DeliveryDone --> NotifCenter
+    PublicOffers --> SendRequest --> ExchangeCenter
+    ExchangeCenter --> ReviewDecision
+    ReviewDecision -- Accept --> ExchangeAccepted --> Notifications
+    ReviewDecision -- Reject --> ExchangeRejected --> Notifications
+
+    DeliveryDash --> DeliveryAvailable --> DeliveryPending
+    DeliveryPending --> DeliveryMap --> Pickup1 --> Pickup2 --> DeliveryComplete --> DeliveryDone
+    DeliveryDash --> Notifications
+    DeliveryDash --> Profile
 
     AdminDash --> AdminBooks
     AdminDash --> AdminUsers
     AdminDash --> AdminOffers
-    AdminDash --> AdminExchanges --> AdminApprove
-    AdminApprove --> NotifCenter
+    AdminDash --> AdminExchanges
+    AdminExchanges --> Notifications
