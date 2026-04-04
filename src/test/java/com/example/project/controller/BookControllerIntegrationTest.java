@@ -9,6 +9,9 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -54,14 +57,18 @@ class BookControllerIntegrationTest {
         two.setTitle("1984");
         two.setAuthor("George Orwell");
 
-        when(bookService.getAllBooks()).thenReturn(List.of(one, two));
+        Page<Book> booksPage = new PageImpl<>(List.of(one, two), PageRequest.of(0, 20), 2);
+        when(bookService.getAllBooksPaginated(any())).thenReturn(booksPage);
 
-        mockMvc.perform(get("/books/browse"))
+        mockMvc.perform(get("/books/browse?page=0&size=20"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].bookId").value("b1"))
-            .andExpect(jsonPath("$[0].title").value("Dune"))
-            .andExpect(jsonPath("$[1].bookId").value("b2"))
-            .andExpect(jsonPath("$[1].author").value("George Orwell"));
+            .andExpect(jsonPath("$.content[0].bookId").value("b1"))
+            .andExpect(jsonPath("$.content[0].title").value("Dune"))
+            .andExpect(jsonPath("$.content[1].bookId").value("b2"))
+            .andExpect(jsonPath("$.content[1].author").value("George Orwell"))
+            .andExpect(jsonPath("$.totalItems").value(2))
+            .andExpect(jsonPath("$.totalPages").value(1))
+            .andExpect(jsonPath("$.currentPage").value(0));
     }
 
     @Test

@@ -3,6 +3,8 @@ package com.example.project.service;
 import com.example.project.entity.Book;
 import com.example.project.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +22,13 @@ public class BookService {
      */
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
+    }
+    
+    /**
+     * Get all books with pagination
+     */
+    public Page<Book> getAllBooksPaginated(Pageable pageable) {
+        return bookRepository.findAll(pageable);
     }
     
     /**
