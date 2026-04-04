@@ -1,0 +1,72 @@
+flowchart TB
+    subgraph L1[Client Layer]
+        ReaderClient[Reader Browser]
+        DeliveryClient[Delivery Partner Browser]
+        AdminClient[Admin Browser]
+        ApiClient[API Client]
+    end
+
+    subgraph L2[Presentation Layer]
+        Templates[Thymeleaf Templates\nindex, auth, reader, offers, exchange, delivery, admin, notifications]
+        StaticJS[Static JS Modules\nauth, offers, exchange-center, delivery, notifications, admin]
+    end
+
+    subgraph L3[API and Security Layer]
+        Security[SecurityFilterChain + JwtAuthenticationFilter\nRole Authorization + Form Login]
+        MVCControllers[MVC Controllers\nHome, AuthController, ReaderDashboard, DeliveryDashboard, NotificationPage]
+        RestControllers[REST Controllers\nAuthRest, Book, Offer, ExchangeRequest, NotificationRest, AdminController]
+    end
+
+    subgraph L4[Application Layer]
+        CoreServices[Core Services\nUserService, BookService, DeliveryPricingService]
+        AdminModule[Admin Module\nAdminFacade + Admin Services + Action Strategies]
+        NotificationEngine[Notification Engine\nNotificationServiceImpl + Observer + Strategy Registry]
+    end
+
+    subgraph L5[Persistence Layer]
+        Repositories[JPA Repositories\nUser, Role, Book, Offer, OfferImage, ExchangeRequest, DeliveryOffer, Notification]
+    end
+
+    subgraph L6[Data and Storage Layer]
+        Postgres[(PostgreSQL Database)]
+        UploadStorage[(Local Upload Storage\nuploads/offers)]
+        CsvSeed[(books.csv Seed Source)]
+    end
+
+    subgraph L7[External Services]
+        OSM[OpenStreetMap Tile Service]
+        Nominatim[Nominatim Geocoding API]
+        OSRM[OSRM Routing API]
+    end
+
+    ReaderClient --> Templates
+    DeliveryClient --> Templates
+    AdminClient --> Templates
+    Templates --> StaticJS
+
+    Templates --> Security
+    StaticJS --> Security
+    ApiClient --> Security
+
+    Security --> MVCControllers
+    Security --> RestControllers
+
+    MVCControllers --> CoreServices
+    MVCControllers --> NotificationEngine
+    RestControllers --> CoreServices
+    RestControllers --> AdminModule
+    RestControllers --> NotificationEngine
+
+    CoreServices --> Repositories
+    AdminModule --> Repositories
+    NotificationEngine --> Repositories
+    Repositories --> Postgres
+
+    RestControllers --> UploadStorage
+    StaticJS --> UploadStorage
+
+    CsvSeed --> CoreServices
+
+    StaticJS --> OSM
+    StaticJS --> Nominatim
+    StaticJS --> OSRM

@@ -106,10 +106,6 @@
                 You have been logged out successfully.
             </div>
 
-            <div th:if="${role}" class="mt-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                <span th:text="${role == 'DELIVERY_PARTNER' ? 'You are joining as Delivery Partner' : 'You are joining as Book Friend'}"></span>
-            </div>
-
             <div class="mt-8">
                 <div th:if="${activeTab == 'signIn'}" class="max-w-md mx-auto">
                     <form th:action="@{/login}" method="post" class="space-y-4">

@@ -39,6 +39,7 @@ import com.example.project.repository.OfferImageRepository;
 import com.example.project.repository.OfferRepository;
 import com.example.project.repository.UserRepository;
 import com.example.project.security.SecurityUtil;
+import com.example.project.service.DeliveryPricingService;
 
 @RestController
 @RequestMapping("/offers")
@@ -58,6 +59,9 @@ public class OfferController {
 
     @Autowired
     private SecurityUtil securityUtil;
+
+    @Autowired
+    private DeliveryPricingService deliveryPricingService;
 
         @GetMapping
         public ResponseEntity<List<OfferBrowseResponse>> browseActiveOffers() {
@@ -81,23 +85,44 @@ public class OfferController {
                 .add(image.getImageUrl());
         }
 
+        double costPerKm = deliveryPricingService.getCostPerKm();
+
         List<OfferBrowseResponse> response = activeOffers.stream()
-            .map(offer -> new OfferBrowseResponse(
-                offer.getId(),
-                offer.getBook().getTitle(),
-                offer.getBook().getAuthor(),
-                offer.getUser().getName(),
-                offer.getCondition(),
-                offer.getNote(),
-                imageUrlsByOfferId.getOrDefault(offer.getId(), List.of()),
-                offer.getUser().getLatitude(),
-                offer.getUser().getLongitude(),
-                offer.getUser().getAddress(),
-                current != null ? current.getLatitude() : null,
-                current != null ? current.getLongitude() : null,
-                current != null ? current.getAddress() : null,
-                current != null ? current.getName() : null
-            ))
+            .filter(offer -> current == null || !offer.getUser().getId().equals(current.getId()))
+            .map(offer -> {
+                Double currentUserLatitude = current != null ? current.getLatitude() : null;
+                Double currentUserLongitude = current != null ? current.getLongitude() : null;
+                DeliveryPricingService.RouteMetrics routeMetrics = deliveryPricingService.resolveRouteMetrics(
+                    null,
+                    null,
+                    currentUserLatitude,
+                    currentUserLongitude,
+                    offer.getUser().getLatitude(),
+                    offer.getUser().getLongitude()
+                );
+                Double distanceKm = routeMetrics != null ? routeMetrics.distanceKm() : null;
+                Double deliveryCost = routeMetrics != null ? routeMetrics.deliveryCost() : null;
+
+                return new OfferBrowseResponse(
+                    offer.getId(),
+                    offer.getBook().getTitle(),
+                    offer.getBook().getAuthor(),
+                    offer.getUser().getName(),
+                    offer.getCondition(),
+                    offer.getNote(),
+                    imageUrlsByOfferId.getOrDefault(offer.getId(), List.of()),
+                    offer.getUser().getLatitude(),
+                    offer.getUser().getLongitude(),
+                    offer.getUser().getAddress(),
+                    currentUserLatitude,
+                    currentUserLongitude,
+                    current != null ? current.getAddress() : null,
+                    current != null ? current.getName() : null,
+                    distanceKm,
+                    deliveryCost,
+                    costPerKm
+                );
+            })
             .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
@@ -401,7 +426,10 @@ public class OfferController {
             Double currentUserLatitude,
             Double currentUserLongitude,
             String currentUserAddress,
-            String currentUserName
+            String currentUserName,
+            Double distanceKm,
+            Double deliveryCost,
+            Double costPerKm
         ) {
         }
 

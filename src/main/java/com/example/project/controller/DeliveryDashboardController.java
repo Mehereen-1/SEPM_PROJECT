@@ -23,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.project.entity.DeliveryOffer;
 import com.example.project.entity.DeliveryOfferStatus;
+import com.example.project.entity.DeliveryPickupUser;
 import com.example.project.entity.ExchangeRequest;
 import com.example.project.entity.ExchangeRequestStatus;
 import com.example.project.entity.User;
@@ -141,8 +142,17 @@ public class DeliveryDashboardController {
             // Persist with legacy-compatible status to avoid DB enum/check constraint conflicts.
             offer.setStatus(DeliveryOfferStatus.PENDING);
             offer.setAcceptedAt(LocalDateTime.now());
+            offer.setPickupStartedAt(null);
+            offer.setBookPickedAt(null);
+            offer.setCompletedAt(null);
+            offer.setPickupACompleted(false);
+            offer.setPickupBCompleted(false);
+            if (offer.getFirstPickupUser() == null) {
+                offer.setFirstPickupUser(DeliveryPickupUser.REQUESTER);
+            }
             deliveryOfferRepository.save(offer);
             safePublish(() -> notificationService.publishDeliveryAssigned(offer, currentUser.get().getId()), "publishDeliveryAssigned", offer.getId());
+            safePublish(() -> notificationService.publishFirstPickupApproaching(offer, currentUser.get().getId()), "publishFirstPickupApproaching", offer.getId());
 
             redirectAttributes.addFlashAttribute("deliveryMessage", "Delivery offer accepted successfully.");
             return "redirect:/delivery/pending";
@@ -175,19 +185,27 @@ public class DeliveryDashboardController {
         }
 
         DeliveryOffer offer = offerResult.get();
-        if (offer.getStatus() != DeliveryOfferStatus.PENDING || offer.getPickupStartedAt() != null) {
+        normalizeLifecycleFields(offer);
+
+        if (offer.getStatus() != DeliveryOfferStatus.PENDING || offer.isPickupACompleted()) {
             return ResponseEntity.badRequest()
-            .body(Map.of("success", false, "message", "Pickup can only be started from accepted delivery status."));
+            .body(Map.of("success", false, "message", "First pickup can only be completed once after accepting the delivery."));
         }
 
-        offer.setPickupStartedAt(LocalDateTime.now());
+        if (offer.getPickupStartedAt() == null) {
+            offer.setPickupStartedAt(LocalDateTime.now());
+        }
+        offer.setPickupACompleted(true);
         deliveryOfferRepository.save(offer);
         safePublish(() -> notificationService.publishPickupStarted(offer, currentUser.get().getId()), "publishPickupStarted", offer.getId());
+        safePublish(() -> notificationService.publishSecondPickupApproaching(offer, currentUser.get().getId()), "publishSecondPickupApproaching", offer.getId());
+
+        PickupParticipants participants = resolvePickupParticipants(offer);
 
         return ResponseEntity.ok(Map.of(
             "success", true,
             "status", "PICKUP_STARTED",
-            "message", "Pickup started successfully"
+            "message", "Picked up from " + participants.firstPickupName() + ". Next: deliver to " + participants.secondPickupName() + " and pick up their book."
         ));
     }
 
@@ -213,19 +231,27 @@ public class DeliveryDashboardController {
         }
 
         DeliveryOffer offer = offerResult.get();
-        if (offer.getStatus() != DeliveryOfferStatus.PENDING || offer.getPickupStartedAt() == null || offer.getBookPickedAt() != null) {
+        normalizeLifecycleFields(offer);
+
+        if (offer.getStatus() != DeliveryOfferStatus.PENDING || !offer.isPickupACompleted() || offer.isPickupBCompleted()) {
             return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", "Book can be marked picked only after pickup has started."));
+                .body(Map.of("success", false, "message", "Second pickup can be completed only after finishing the first pickup."));
         }
 
-        offer.setBookPickedAt(LocalDateTime.now());
+        if (offer.getBookPickedAt() == null) {
+            offer.setBookPickedAt(LocalDateTime.now());
+        }
+        offer.setPickupBCompleted(true);
         deliveryOfferRepository.save(offer);
         safePublish(() -> notificationService.publishBookPicked(offer, currentUser.get().getId()), "publishBookPicked", offer.getId());
+        safePublish(() -> notificationService.publishFinalDeliveryApproaching(offer, currentUser.get().getId()), "publishFinalDeliveryApproaching", offer.getId());
+
+        PickupParticipants participants = resolvePickupParticipants(offer);
 
         return ResponseEntity.ok(Map.of(
             "success", true,
             "status", "BOOK_PICKED",
-            "message", "Book picked successfully"
+            "message", "Delivered to " + participants.secondPickupName() + " and picked up their book. Next: deliver to " + participants.finalDropoffName() + "."
         ));
     }
 
@@ -251,9 +277,11 @@ public class DeliveryDashboardController {
         }
 
         DeliveryOffer offer = offerResult.get();
-        if (offer.getStatus() != DeliveryOfferStatus.PENDING || offer.getBookPickedAt() == null) {
+        normalizeLifecycleFields(offer);
+
+        if (offer.getStatus() != DeliveryOfferStatus.PENDING || !offer.isPickupACompleted() || !offer.isPickupBCompleted()) {
             return ResponseEntity.badRequest()
-                .body(Map.of("success", false, "message", "Delivery can only be completed after book is marked picked."));
+                .body(Map.of("success", false, "message", "Final delivery can only be completed after both pickups are finished."));
         }
 
         offer.setStatus(DeliveryOfferStatus.COMPLETED);
@@ -261,10 +289,12 @@ public class DeliveryDashboardController {
         deliveryOfferRepository.save(offer);
         safePublish(() -> notificationService.publishDeliveryCompleted(offer, currentUser.get().getId()), "publishDeliveryCompleted", offer.getId());
 
+        PickupParticipants participants = resolvePickupParticipants(offer);
+
         return ResponseEntity.ok(Map.of(
             "success", true,
             "status", offer.getStatus().name(),
-            "message", "Delivery completed"
+            "message", "Delivery completed. " + participants.finalDropoffName() + " received the final book."
         ));
     }
 
@@ -289,16 +319,11 @@ public class DeliveryDashboardController {
         Coordinate senderCoordinate = resolveCoordinate(sender);
         Coordinate receiverCoordinate = resolveCoordinate(receiver);
 
-        Double distanceKm = offer.getDistanceKm();
-        if (distanceKm == null) {
-            distanceKm = deliveryPricingService.estimateDistanceKm(
-                senderCoordinate.latitude(),
-                senderCoordinate.longitude(),
-                receiverCoordinate.latitude(),
-                receiverCoordinate.longitude()
-            );
-        }
-        Double deliveryCost = deliveryPricingService.calculateCost(distanceKm);
+        DeliveryPricingService.RouteMetrics routeMetrics = resolveAndSyncRouteMetrics(
+            offer,
+            senderCoordinate,
+            receiverCoordinate
+        );
 
         model.addAttribute("deliveryOffer", offer);
         model.addAttribute("senderName", sender.getName());
@@ -309,19 +334,13 @@ public class DeliveryDashboardController {
         model.addAttribute("receiverLng", receiverCoordinate.longitude());
         model.addAttribute("senderAddress", sender.getAddress());
         model.addAttribute("receiverAddress", receiver.getAddress());
-        model.addAttribute("distanceKm", distanceKm);
-        model.addAttribute("deliveryCost", deliveryCost);
+        model.addAttribute("distanceKm", routeMetrics.distanceKm());
+        model.addAttribute("deliveryCost", routeMetrics.deliveryCost());
+        model.addAttribute("costPerKm", deliveryPricingService.getCostPerKm());
         model.addAttribute("hasExactSenderLocation", sender.getLatitude() != null && sender.getLongitude() != null);
         model.addAttribute("hasExactReceiverLocation", receiver.getLatitude() != null && receiver.getLongitude() != null);
         model.addAttribute("fallbackLat", DEFAULT_LAT);
         model.addAttribute("fallbackLng", DEFAULT_LNG);
-
-        // Keep stored values in sync if we calculated estimates server-side.
-        if (offer.getDistanceKm() == null || offer.getDeliveryFee() == null) {
-            offer.setDistanceKm(distanceKm);
-            offer.setDeliveryFee(deliveryCost);
-            deliveryOfferRepository.save(offer);
-        }
 
         return "delivery-map";
     }
@@ -337,22 +356,24 @@ public class DeliveryDashboardController {
 
         Coordinate senderCoordinate = resolveCoordinate(sender);
         Coordinate receiverCoordinate = resolveCoordinate(receiver);
-        Double distanceKm = offer.getDistanceKm() != null
-            ? offer.getDistanceKm()
-            : deliveryPricingService.estimateDistanceKm(
-                senderCoordinate.latitude(),
-                senderCoordinate.longitude(),
-                receiverCoordinate.latitude(),
-                receiverCoordinate.longitude()
-            );
+        DeliveryPricingService.RouteMetrics routeMetrics = resolveAndSyncRouteMetrics(
+            offer,
+            senderCoordinate,
+            receiverCoordinate
+        );
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("senderLat", senderCoordinate.latitude());
         payload.put("senderLng", senderCoordinate.longitude());
         payload.put("receiverLat", receiverCoordinate.latitude());
         payload.put("receiverLng", receiverCoordinate.longitude());
-        payload.put("distanceKm", distanceKm);
-        payload.put("cost", deliveryPricingService.calculateCost(distanceKm));
+        payload.put("distanceKm", routeMetrics.distanceKm());
+        payload.put("distance_km", routeMetrics.distanceKm());
+        payload.put("deliveryCost", routeMetrics.deliveryCost());
+        payload.put("delivery_cost", routeMetrics.deliveryCost());
+        payload.put("cost", routeMetrics.deliveryCost());
+        payload.put("costPerKm", deliveryPricingService.getCostPerKm());
+        payload.put("cost_per_km", deliveryPricingService.getCostPerKm());
         return payload;
     }
 
@@ -362,6 +383,75 @@ public class DeliveryDashboardController {
         }
 
         return new Coordinate(user.getLatitude(), user.getLongitude());
+    }
+
+    private DeliveryPricingService.RouteMetrics resolveAndSyncRouteMetrics(
+        DeliveryOffer offer,
+        Coordinate senderCoordinate,
+        Coordinate receiverCoordinate
+    ) {
+        DeliveryPricingService.RouteMetrics routeMetrics = deliveryPricingService.resolveRouteMetrics(
+            offer.getDistanceKm(),
+            offer.getDeliveryFee(),
+            senderCoordinate.latitude(),
+            senderCoordinate.longitude(),
+            receiverCoordinate.latitude(),
+            receiverCoordinate.longitude()
+        );
+
+        if (routeMetrics == null) {
+            Double estimatedDistanceKm = deliveryPricingService.normalizeDistanceKm(
+                deliveryPricingService.estimateDistanceKm(
+                    senderCoordinate.latitude(),
+                    senderCoordinate.longitude(),
+                    receiverCoordinate.latitude(),
+                    receiverCoordinate.longitude()
+                )
+            );
+            Double estimatedDeliveryCost = deliveryPricingService.calculateCost(estimatedDistanceKm);
+            routeMetrics = new DeliveryPricingService.RouteMetrics(
+                estimatedDistanceKm != null ? estimatedDistanceKm : offer.getDistanceKm(),
+                estimatedDeliveryCost != null ? estimatedDeliveryCost : offer.getDeliveryFee()
+            );
+        }
+
+        Double resolvedDistanceKm = routeMetrics.distanceKm();
+        Double resolvedDeliveryCost = routeMetrics.deliveryCost();
+
+        if (resolvedDistanceKm == null) {
+            resolvedDistanceKm = 0.0d;
+        }
+
+        if (resolvedDeliveryCost == null) {
+            resolvedDeliveryCost = deliveryPricingService.calculateCost(resolvedDistanceKm);
+        }
+
+        if (resolvedDeliveryCost == null) {
+            resolvedDeliveryCost = 0.0d;
+        }
+
+        routeMetrics = new DeliveryPricingService.RouteMetrics(resolvedDistanceKm, resolvedDeliveryCost);
+
+        boolean shouldSave = valueChanged(offer.getDistanceKm(), routeMetrics.distanceKm())
+            || valueChanged(offer.getDeliveryFee(), routeMetrics.deliveryCost());
+
+        if (shouldSave) {
+            offer.setDistanceKm(routeMetrics.distanceKm());
+            offer.setDeliveryFee(routeMetrics.deliveryCost());
+            deliveryOfferRepository.save(offer);
+        }
+
+        return routeMetrics;
+    }
+
+    private boolean valueChanged(Double currentValue, Double newValue) {
+        if (currentValue == null && newValue == null) {
+            return false;
+        }
+        if (currentValue == null || newValue == null) {
+            return true;
+        }
+        return Double.compare(currentValue, newValue) != 0;
     }
 
     private void populateModel(
@@ -390,8 +480,24 @@ public class DeliveryDashboardController {
     }
 
     private DeliveryOfferCardView toCard(DeliveryOffer offer) {
-        String requesterName = offer.getExchangeRequest().getRequesterOffer().getUser().getName();
-        String targetName = offer.getExchangeRequest().getTargetOffer().getUser().getName();
+        User requester = offer.getExchangeRequest().getRequesterOffer().getUser();
+        User target = offer.getExchangeRequest().getTargetOffer().getUser();
+
+        String requesterName = requester.getName();
+        String targetName = target.getName();
+
+        boolean lifecycleNormalized = normalizeLifecycleFields(offer);
+        if (lifecycleNormalized) {
+            deliveryOfferRepository.save(offer);
+        }
+
+        Coordinate requesterCoordinate = resolveCoordinate(requester);
+        Coordinate targetCoordinate = resolveCoordinate(target);
+        DeliveryPricingService.RouteMetrics routeMetrics = resolveAndSyncRouteMetrics(
+            offer,
+            requesterCoordinate,
+            targetCoordinate
+        );
 
         String headline = requesterName + " wants to exchange a book with " + targetName;
         String bookPair = offer.getExchangeRequest().getRequesterOffer().getBook().getTitle()
@@ -399,6 +505,7 @@ public class DeliveryDashboardController {
             + offer.getExchangeRequest().getTargetOffer().getBook().getTitle();
 
         String lifecycleStatus = resolveLifecycleStatus(offer);
+        PickupParticipants participants = resolvePickupParticipants(offer, requesterName, targetName);
 
         return new DeliveryOfferCardView(
             offer.getId(),
@@ -406,9 +513,13 @@ public class DeliveryDashboardController {
             requesterName,
             targetName,
             bookPair,
-            offer.getDistanceKm(),
+            routeMetrics.distanceKm(),
+            routeMetrics.deliveryCost(),
             lifecycleStatus,
-            offer.getAssignedDeliveryPartner() != null ? offer.getAssignedDeliveryPartner().getName() : null
+            offer.getAssignedDeliveryPartner() != null ? offer.getAssignedDeliveryPartner().getName() : null,
+            participants.firstPickupName(),
+            participants.secondPickupName(),
+            participants.finalDropoffName()
         );
     }
 
@@ -416,16 +527,75 @@ public class DeliveryDashboardController {
         if (offer.getStatus() == DeliveryOfferStatus.COMPLETED) {
             return DeliveryOfferStatus.COMPLETED.name();
         }
-        if (offer.getBookPickedAt() != null) {
+        if (offer.isPickupBCompleted() || offer.getBookPickedAt() != null) {
             return DeliveryOfferStatus.BOOK_PICKED.name();
         }
-        if (offer.getPickupStartedAt() != null) {
+        if (offer.isPickupACompleted() || offer.getPickupStartedAt() != null) {
             return DeliveryOfferStatus.PICKUP_STARTED.name();
         }
         if (offer.getAssignedDeliveryPartner() != null && offer.getAcceptedAt() != null) {
             return DeliveryOfferStatus.ACCEPTED.name();
         }
         return offer.getStatus().name();
+    }
+
+    private boolean normalizeLifecycleFields(DeliveryOffer offer) {
+        boolean changed = false;
+
+        if (offer.getFirstPickupUser() == null) {
+            offer.setFirstPickupUser(DeliveryPickupUser.REQUESTER);
+            changed = true;
+        }
+
+        if (offer.getPickupACompleted() == null) {
+            offer.setPickupACompleted(offer.getPickupStartedAt() != null);
+            changed = true;
+        }
+
+        if (offer.getPickupBCompleted() == null) {
+            offer.setPickupBCompleted(offer.getBookPickedAt() != null);
+            changed = true;
+        }
+
+        if (offer.isPickupBCompleted() && !offer.isPickupACompleted()) {
+            offer.setPickupACompleted(true);
+            changed = true;
+        }
+
+        if (offer.getStatus() == DeliveryOfferStatus.COMPLETED) {
+            if (!offer.isPickupACompleted()) {
+                offer.setPickupACompleted(true);
+                changed = true;
+            }
+            if (!offer.isPickupBCompleted()) {
+                offer.setPickupBCompleted(true);
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    private PickupParticipants resolvePickupParticipants(DeliveryOffer offer) {
+        String requesterName = offer.getExchangeRequest().getRequesterOffer().getUser().getName();
+        String targetName = offer.getExchangeRequest().getTargetOffer().getUser().getName();
+        return resolvePickupParticipants(offer, requesterName, targetName);
+    }
+
+    private PickupParticipants resolvePickupParticipants(
+        DeliveryOffer offer,
+        String requesterName,
+        String targetName
+    ) {
+        DeliveryPickupUser firstPickupUser = offer.getFirstPickupUser() != null
+            ? offer.getFirstPickupUser()
+            : DeliveryPickupUser.REQUESTER;
+
+        if (firstPickupUser == DeliveryPickupUser.RECEIVER) {
+            return new PickupParticipants(targetName, requesterName, targetName);
+        }
+
+        return new PickupParticipants(requesterName, targetName, requesterName);
     }
 
     private Optional<User> getCurrentUser() {
@@ -448,7 +618,11 @@ public class DeliveryDashboardController {
             DeliveryOffer offer = new DeliveryOffer();
             offer.setExchangeRequest(exchangeRequest);
             offer.setStatus(DeliveryOfferStatus.AVAILABLE);
-            offer.setDeliveryFee(0.0d);
+            offer.setDistanceKm(null);
+            offer.setDeliveryFee(null);
+            offer.setFirstPickupUser(DeliveryPickupUser.REQUESTER);
+            offer.setPickupACompleted(false);
+            offer.setPickupBCompleted(false);
             offer.setCreatedAt(LocalDateTime.now());
             DeliveryOffer created = deliveryOfferRepository.save(offer);
             safePublish(() -> notificationService.publishDeliveryCreated(created, null), "publishDeliveryCreated", created.getId());
@@ -470,8 +644,19 @@ public class DeliveryDashboardController {
         String targetName,
         String bookPair,
         Double distanceKm,
+        Double deliveryCost,
         String status,
-        String assignedDeliveryPartnerName
+        String assignedDeliveryPartnerName,
+        String firstPickupName,
+        String secondPickupName,
+        String finalDropoffName
+    ) {
+    }
+
+    record PickupParticipants(
+        String firstPickupName,
+        String secondPickupName,
+        String finalDropoffName
     ) {
     }
 

@@ -1,0 +1,296 @@
+classDiagram
+    direction LR
+
+    class User {
+        <<Entity>>
+        +Long id
+        +String name
+        +String firstName
+        +String lastName
+        +String email
+        +String password
+        +Boolean active
+        +String gender
+        +LocalDate dateOfBirth
+        +String phoneNumber1
+        +String phoneNumber2
+        +Double latitude
+        +Double longitude
+        +String address
+        +Set~Role~ roles
+        +Long getId()
+        +String getEmail()
+        +Set~Role~ getRoles()
+    }
+
+    class Role {
+        <<Entity>>
+        +Long id
+        +String name
+        +Long getId()
+        +String getName()
+    }
+
+    class Book {
+        <<Entity>>
+        +String bookId
+        +String title
+        +String author
+        +String series
+        +Double rating
+        +String description
+        +String language
+        +String isbn
+        +String publisher
+        +Integer publicationYear
+        +String genres
+        +String characters
+        +Integer pages
+        +String firstPublishDate
+        +String awards
+        +String coverImg
+    }
+
+    class Offer {
+        <<Entity>>
+        +Long id
+        +User user
+        +Book book
+        +String condition
+        +String note
+        +LocalDateTime createdAt
+        +OfferStatus status
+        +Long getId()
+        +OfferStatus getStatus()
+        +void setStatus(status: OfferStatus)
+    }
+
+    class OfferImage {
+        <<Entity>>
+        +Long id
+        +Offer offer
+        +String imageUrl
+    }
+
+    class ExchangeRequest {
+        <<Entity>>
+        +Long id
+        +Offer requesterOffer
+        +Offer targetOffer
+        +ExchangeRequestStatus status
+        +LocalDateTime createdAt
+        +Long getId()
+        +ExchangeRequestStatus getStatus()
+        +void setStatus(status: ExchangeRequestStatus)
+    }
+
+    class DeliveryOffer {
+        <<Entity>>
+        +Long id
+        +ExchangeRequest exchangeRequest
+        +User assignedDeliveryPartner
+        +DeliveryOfferStatus status
+        +Double distanceKm
+        +Double deliveryFee
+        +DeliveryPickupUser firstPickupUser
+        +Boolean pickupACompleted
+        +Boolean pickupBCompleted
+        +LocalDateTime createdAt
+        +LocalDateTime acceptedAt
+        +LocalDateTime pickupStartedAt
+        +LocalDateTime bookPickedAt
+        +LocalDateTime completedAt
+        +boolean isPickupACompleted()
+        +boolean isPickupBCompleted()
+    }
+
+    class Notification {
+        <<Entity>>
+        +Long id
+        +User recipient
+        +String message
+        +NotificationType type
+        +boolean isRead
+        +LocalDateTime createdAt
+        +String eventKey
+        +boolean isRead()
+        +void setRead(read: boolean)
+    }
+
+    class OfferStatus {
+        <<Enumeration>>
+        ACTIVE
+        RESERVED
+        BLOCKED
+        INACTIVE
+    }
+
+    class ExchangeRequestStatus {
+        <<Enumeration>>
+        PENDING
+        ACCEPTED
+        REJECTED
+    }
+
+    class DeliveryOfferStatus {
+        <<Enumeration>>
+        AVAILABLE
+        ACCEPTED
+        PICKUP_STARTED
+        BOOK_PICKED
+        PENDING
+        COMPLETED
+    }
+
+    class DeliveryPickupUser {
+        <<Enumeration>>
+        REQUESTER
+        RECEIVER
+    }
+
+    class NotificationType {
+        <<Enumeration>>
+        EXCHANGE
+        DELIVERY
+        SYSTEM
+    }
+
+    class NotificationEventType {
+        <<Enumeration>>
+        EXCHANGE_REQUEST_SENT
+        EXCHANGE_ACCEPTED
+        EXCHANGE_REJECTED
+        DELIVERY_CREATED
+        DELIVERY_ASSIGNED
+        FIRST_PICKUP_APPROACHING
+        PICKUP_STARTED
+        SECOND_PICKUP_APPROACHING
+        BOOK_PICKED
+        FINAL_DELIVERY_APPROACHING
+        DELIVERY_COMPLETED
+        SYSTEM_ANNOUNCEMENT
+    }
+
+    class NotificationEvent {
+        <<Record>>
+        +NotificationEventType eventType
+        +Long actorUserId
+        +ExchangeRequest exchangeRequest
+        +DeliveryOffer deliveryOffer
+        +User directRecipient
+        +String customMessage
+        +LocalDateTime occurredAt
+    }
+
+    class NotificationDraft {
+        <<Record>>
+        +User recipient
+        +String message
+        +NotificationType type
+        +String eventKey
+    }
+
+    class NotificationService {
+        <<interface>>
+        +publishExchangeRequestSent(exchangeRequest: ExchangeRequest, actorUserId: Long) void
+        +publishExchangeAccepted(exchangeRequest: ExchangeRequest, actorUserId: Long) void
+        +publishExchangeRejected(exchangeRequest: ExchangeRequest, actorUserId: Long) void
+        +publishDeliveryCreated(deliveryOffer: DeliveryOffer, actorUserId: Long) void
+        +publishDeliveryAssigned(deliveryOffer: DeliveryOffer, actorUserId: Long) void
+        +publishPickupStarted(deliveryOffer: DeliveryOffer, actorUserId: Long) void
+        +publishBookPicked(deliveryOffer: DeliveryOffer, actorUserId: Long) void
+        +publishDeliveryCompleted(deliveryOffer: DeliveryOffer, actorUserId: Long) void
+        +getCurrentUserNotifications(unread: Boolean, limit: Integer) List~NotificationView~
+        +markAsRead(notificationId: Long) boolean
+        +markAllAsRead() int
+    }
+
+    class NotificationServiceImpl {
+        +getCurrentUserNotifications(unread: Boolean, limit: Integer) List~NotificationView~
+        +getCurrentUserSummary(recentLimit: Integer) NotificationSummaryView
+        +markAsRead(notificationId: Long) boolean
+        +markAllAsRead() int
+    }
+
+    class NotificationSubject {
+        <<interface>>
+        +publish(event: NotificationEvent) void
+    }
+
+    class DefaultNotificationSubject {
+        +publish(event: NotificationEvent) void
+    }
+
+    class NotificationObserver {
+        <<interface>>
+        +onEvent(event: NotificationEvent) void
+    }
+
+    class PersistingNotificationObserver {
+        +onEvent(event: NotificationEvent) void
+    }
+
+    class NotificationStrategy {
+        <<interface>>
+        +supports(eventType: NotificationEventType) boolean
+        +build(event: NotificationEvent) List~NotificationDraft~
+    }
+
+    class NotificationStrategyRegistry {
+        +resolve(eventType: NotificationEventType) NotificationStrategy
+    }
+
+    class ExchangeNotificationStrategy
+    class DeliveryNotificationStrategy
+    class SystemNotificationStrategy
+
+    class NotificationRepository {
+        <<Repository>>
+        +findByRecipient_IdOrderByCreatedAtDesc(recipientId: Long, pageable: Pageable) List~Notification~
+        +findByRecipient_IdAndIsReadFalseOrderByCreatedAtDesc(recipientId: Long, pageable: Pageable) List~Notification~
+        +markAllReadByRecipientId(recipientId: Long) int
+    }
+
+    class UserRepository {
+        <<Repository>>
+        +findByEmail(email: String) Optional~User~
+        +existsByEmailIgnoreCase(email: String) boolean
+    }
+
+    User "0..*" -- "0..*" Role : has roles
+    User "1" <-- "0..*" Offer : owns
+    Book "1" <-- "0..*" Offer : listed in
+    Offer "1" o-- "0..*" OfferImage : images
+    Offer "1" <-- "0..*" ExchangeRequest : requesterOffer
+    Offer "1" <-- "0..*" ExchangeRequest : targetOffer
+    ExchangeRequest "1" <-- "0..1" DeliveryOffer : deliveryOffer
+    User "0..1" <-- "0..*" DeliveryOffer : assignedDeliveryPartner
+    User "1" <-- "0..*" Notification : recipient
+
+    Offer --> OfferStatus
+    ExchangeRequest --> ExchangeRequestStatus
+    DeliveryOffer --> DeliveryOfferStatus
+    DeliveryOffer --> DeliveryPickupUser
+    Notification --> NotificationType
+    NotificationEvent --> NotificationEventType
+
+    NotificationService <|.. NotificationServiceImpl
+    NotificationSubject <|.. DefaultNotificationSubject
+    NotificationObserver <|.. PersistingNotificationObserver
+    NotificationStrategy <|.. ExchangeNotificationStrategy
+    NotificationStrategy <|.. DeliveryNotificationStrategy
+    NotificationStrategy <|.. SystemNotificationStrategy
+
+    DefaultNotificationSubject o-- "1..*" NotificationObserver : observers
+    NotificationStrategyRegistry o-- "1..*" NotificationStrategy : strategies
+    NotificationServiceImpl --> NotificationSubject : publish()
+    NotificationServiceImpl --> NotificationRepository : read/write
+    NotificationServiceImpl --> UserRepository : resolve current user
+    PersistingNotificationObserver --> NotificationStrategyRegistry : resolve()
+    PersistingNotificationObserver --> NotificationRepository : persist
+
+    NotificationDraft --> User : recipient
+    NotificationDraft --> NotificationType
+    NotificationEvent --> ExchangeRequest
+    NotificationEvent --> DeliveryOffer
+    NotificationEvent --> User : directRecipient

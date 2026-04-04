@@ -8,6 +8,7 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 import com.example.project.entity.DeliveryOffer;
+import com.example.project.entity.DeliveryPickupUser;
 import com.example.project.entity.User;
 import com.example.project.notification.event.NotificationEvent;
 import com.example.project.notification.event.NotificationEventType;
@@ -31,8 +32,11 @@ public class DeliveryNotificationStrategy implements NotificationStrategy {
     public boolean supports(NotificationEventType eventType) {
         return eventType == NotificationEventType.DELIVERY_CREATED
             || eventType == NotificationEventType.DELIVERY_ASSIGNED
+            || eventType == NotificationEventType.FIRST_PICKUP_APPROACHING
             || eventType == NotificationEventType.PICKUP_STARTED
+            || eventType == NotificationEventType.SECOND_PICKUP_APPROACHING
             || eventType == NotificationEventType.BOOK_PICKED
+            || eventType == NotificationEventType.FINAL_DELIVERY_APPROACHING
             || eventType == NotificationEventType.DELIVERY_COMPLETED;
     }
 
@@ -46,6 +50,8 @@ public class DeliveryNotificationStrategy implements NotificationStrategy {
         User sender = safeSender(deliveryOffer);
         User receiver = safeReceiver(deliveryOffer);
         User assignee = deliveryOffer.getAssignedDeliveryPartner();
+        String assigneeName = safeUserName(assignee, "The delivery partner");
+        PickupContext pickupContext = resolvePickupContext(deliveryOffer, sender, receiver);
 
         Long deliveryOfferId = deliveryOffer.getId();
         List<NotificationDraft> drafts = new ArrayList<>();
@@ -55,41 +61,140 @@ public class DeliveryNotificationStrategy implements NotificationStrategy {
                 String senderBook = safeSenderBook(deliveryOffer);
                 String receiverBook = safeReceiverBook(deliveryOffer);
                 String message = "A new delivery task is available for exchange: \"" + senderBook + "\" <-> \"" + receiverBook + "\".";
-                drafts.add(new NotificationDraft(sender, "Delivery offer created for your exchange request.", NotificationType.DELIVERY, "delivery-created:" + deliveryOfferId + ":sender"));
-                drafts.add(new NotificationDraft(receiver, "Delivery offer created for your exchange request.", NotificationType.DELIVERY, "delivery-created:" + deliveryOfferId + ":receiver"));
+                drafts.add(new NotificationDraft(
+                    sender,
+                    "Delivery offer created for your exchange request.",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("delivery-created", deliveryOfferId, sender)
+                ));
+                drafts.add(new NotificationDraft(
+                    receiver,
+                    "Delivery offer created for your exchange request.",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("delivery-created", deliveryOfferId, receiver)
+                ));
                 for (User deliveryPartner : findDeliveryPartners()) {
-                    drafts.add(new NotificationDraft(deliveryPartner, message, NotificationType.DELIVERY, "delivery-created:" + deliveryOfferId + ":partner:" + deliveryPartner.getId()));
+                    drafts.add(new NotificationDraft(
+                        deliveryPartner,
+                        message,
+                        NotificationType.DELIVERY,
+                        eventKeyForRecipient("delivery-created-partner", deliveryOfferId, deliveryPartner)
+                    ));
                 }
             }
             case DELIVERY_ASSIGNED -> {
-                String assigneeName = assignee != null ? assignee.getName() : "A delivery partner";
-                drafts.add(new NotificationDraft(sender, assigneeName + " accepted your delivery request.", NotificationType.DELIVERY, "delivery-assigned:" + deliveryOfferId + ":sender"));
-                drafts.add(new NotificationDraft(receiver, assigneeName + " accepted your delivery request.", NotificationType.DELIVERY, "delivery-assigned:" + deliveryOfferId + ":receiver"));
-            }
-            case PICKUP_STARTED -> drafts.add(
-                new NotificationDraft(
+                drafts.add(new NotificationDraft(
                     sender,
-                    "Delivery partner has started pickup for your book \"" + safeSenderBook(deliveryOffer) + "\".",
+                    assigneeName + " accepted your delivery request.",
                     NotificationType.DELIVERY,
-                    "pickup-started:" + deliveryOfferId + ":sender"
-                )
-            );
-            case BOOK_PICKED -> drafts.add(
-                new NotificationDraft(
+                    eventKeyForRecipient("delivery-assigned", deliveryOfferId, sender)
+                ));
+                drafts.add(new NotificationDraft(
                     receiver,
-                    "Book \"" + safeSenderBook(deliveryOffer) + "\" has been picked and is on its way to you.",
+                    assigneeName + " accepted your delivery request.",
                     NotificationType.DELIVERY,
-                    "book-picked:" + deliveryOfferId + ":receiver"
-                )
-            );
+                    eventKeyForRecipient("delivery-assigned", deliveryOfferId, receiver)
+                ));
+            }
+            case FIRST_PICKUP_APPROACHING -> {
+                drafts.add(new NotificationDraft(
+                    pickupContext.firstReader(),
+                    assigneeName + " is coming to pick up your book \"" + pickupContext.firstReaderBook() + "\" first.",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("first-pickup-approaching", deliveryOfferId, pickupContext.firstReader())
+                ));
+                drafts.add(new NotificationDraft(
+                    pickupContext.secondReader(),
+                    assigneeName + " is going to " + pickupContext.firstReaderName()
+                        + " for first pickup, then will collect your book.",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("first-pickup-approaching", deliveryOfferId, pickupContext.secondReader())
+                ));
+            }
+            case PICKUP_STARTED -> {
+                drafts.add(new NotificationDraft(
+                    pickupContext.firstReader(),
+                    assigneeName + " has picked up your book \"" + pickupContext.firstReaderBook() + "\".",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("first-pickup-completed", deliveryOfferId, pickupContext.firstReader())
+                ));
+                drafts.add(new NotificationDraft(
+                    pickupContext.secondReader(),
+                    "First pickup from " + pickupContext.firstReaderName()
+                        + " is complete. " + assigneeName + " will now head to you.",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("first-pickup-completed", deliveryOfferId, pickupContext.secondReader())
+                ));
+            }
+            case SECOND_PICKUP_APPROACHING -> {
+                drafts.add(new NotificationDraft(
+                    pickupContext.secondReader(),
+                    assigneeName + " is coming to your location to deliver \"" + pickupContext.firstReaderBook()
+                        + "\" and pick up your book \"" + pickupContext.secondReaderBook() + "\".",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("second-pickup-approaching", deliveryOfferId, pickupContext.secondReader())
+                ));
+                drafts.add(new NotificationDraft(
+                    pickupContext.firstReader(),
+                    assigneeName + " is now going to " + pickupContext.secondReaderName()
+                        + " for drop-off and second pickup.",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("second-pickup-approaching", deliveryOfferId, pickupContext.firstReader())
+                ));
+            }
+            case BOOK_PICKED -> {
+                drafts.add(new NotificationDraft(
+                    pickupContext.secondReader(),
+                    assigneeName + " has delivered \"" + pickupContext.firstReaderBook()
+                        + "\" to you and picked up your book \"" + pickupContext.secondReaderBook() + "\".",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("second-pickup-completed", deliveryOfferId, pickupContext.secondReader())
+                ));
+                drafts.add(new NotificationDraft(
+                    pickupContext.firstReader(),
+                    assigneeName + " has completed drop-off and pickup at " + pickupContext.secondReaderName() + "'s location.",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("second-pickup-completed", deliveryOfferId, pickupContext.firstReader())
+                ));
+            }
+            case FINAL_DELIVERY_APPROACHING -> {
+                drafts.add(new NotificationDraft(
+                    pickupContext.firstReader(),
+                    assigneeName + " is approaching you to deliver \"" + pickupContext.secondReaderBook() + "\".",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("final-delivery-approaching", deliveryOfferId, pickupContext.firstReader())
+                ));
+                drafts.add(new NotificationDraft(
+                    pickupContext.secondReader(),
+                    assigneeName + " is on the way to deliver \"" + pickupContext.secondReaderBook()
+                        + "\" to " + pickupContext.firstReaderName() + ".",
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("final-delivery-approaching", deliveryOfferId, pickupContext.secondReader())
+                ));
+            }
             case DELIVERY_COMPLETED -> {
                 String senderBook = safeSenderBook(deliveryOffer);
                 String receiverBook = safeReceiverBook(deliveryOffer);
                 String completionMessage = "Delivery completed for exchange: \"" + senderBook + "\" <-> \"" + receiverBook + "\".";
-                drafts.add(new NotificationDraft(sender, completionMessage, NotificationType.DELIVERY, "delivery-completed:" + deliveryOfferId + ":sender"));
-                drafts.add(new NotificationDraft(receiver, completionMessage, NotificationType.DELIVERY, "delivery-completed:" + deliveryOfferId + ":receiver"));
+                drafts.add(new NotificationDraft(
+                    sender,
+                    completionMessage,
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("delivery-completed", deliveryOfferId, sender)
+                ));
+                drafts.add(new NotificationDraft(
+                    receiver,
+                    completionMessage,
+                    NotificationType.DELIVERY,
+                    eventKeyForRecipient("delivery-completed", deliveryOfferId, receiver)
+                ));
                 if (assignee != null) {
-                    drafts.add(new NotificationDraft(assignee, "You completed the delivery successfully.", NotificationType.DELIVERY, "delivery-completed:" + deliveryOfferId + ":assignee"));
+                    drafts.add(new NotificationDraft(
+                        assignee,
+                        "You completed the delivery successfully.",
+                        NotificationType.DELIVERY,
+                        eventKeyForRecipient("delivery-completed-assignee", deliveryOfferId, assignee)
+                    ));
                 }
             }
             default -> {
@@ -151,5 +256,57 @@ public class DeliveryNotificationStrategy implements NotificationStrategy {
         } catch (RuntimeException ex) {
             return "the requested book";
         }
+    }
+
+    private DeliveryPickupUser resolveFirstPickupUser(DeliveryOffer deliveryOffer) {
+        if (deliveryOffer == null || deliveryOffer.getFirstPickupUser() == null) {
+            return DeliveryPickupUser.REQUESTER;
+        }
+        return deliveryOffer.getFirstPickupUser();
+    }
+
+    private PickupContext resolvePickupContext(DeliveryOffer deliveryOffer, User sender, User receiver) {
+        if (resolveFirstPickupUser(deliveryOffer) == DeliveryPickupUser.RECEIVER) {
+            return new PickupContext(
+                receiver,
+                sender,
+                safeUserName(receiver, "Reader B"),
+                safeUserName(sender, "Reader A"),
+                safeReceiverBook(deliveryOffer),
+                safeSenderBook(deliveryOffer)
+            );
+        }
+        return new PickupContext(
+            sender,
+            receiver,
+            safeUserName(sender, "Reader A"),
+            safeUserName(receiver, "Reader B"),
+            safeSenderBook(deliveryOffer),
+            safeReceiverBook(deliveryOffer)
+        );
+    }
+
+    private String safeUserName(User user, String fallback) {
+        if (user == null || user.getName() == null || user.getName().isBlank()) {
+            return fallback;
+        }
+        return user.getName();
+    }
+
+    private String eventKeyForRecipient(String eventPrefix, Long deliveryOfferId, User recipient) {
+        if (eventPrefix == null || deliveryOfferId == null || recipient == null || recipient.getId() == null) {
+            return null;
+        }
+        return eventPrefix + ":" + deliveryOfferId + ":user:" + recipient.getId();
+    }
+
+    private record PickupContext(
+        User firstReader,
+        User secondReader,
+        String firstReaderName,
+        String secondReaderName,
+        String firstReaderBook,
+        String secondReaderBook
+    ) {
     }
 }

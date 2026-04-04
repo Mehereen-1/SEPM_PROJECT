@@ -18,9 +18,15 @@ public interface NotificationService {
 
     void publishDeliveryAssigned(DeliveryOffer deliveryOffer, Long actorUserId);
 
+    void publishFirstPickupApproaching(DeliveryOffer deliveryOffer, Long actorUserId);
+
     void publishPickupStarted(DeliveryOffer deliveryOffer, Long actorUserId);
 
+    void publishSecondPickupApproaching(DeliveryOffer deliveryOffer, Long actorUserId);
+
     void publishBookPicked(DeliveryOffer deliveryOffer, Long actorUserId);
+
+    void publishFinalDeliveryApproaching(DeliveryOffer deliveryOffer, Long actorUserId);
 
     void publishDeliveryCompleted(DeliveryOffer deliveryOffer, Long actorUserId);
 

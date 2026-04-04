@@ -45,6 +45,16 @@ public class DeliveryOffer {
     @Column(name = "delivery_fee")
     private Double deliveryFee;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "first_pickup_user")
+    private DeliveryPickupUser firstPickupUser;
+
+    @Column(name = "pickup_a_completed")
+    private Boolean pickupACompleted;
+
+    @Column(name = "pickup_b_completed")
+    private Boolean pickupBCompleted;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -146,5 +156,37 @@ public class DeliveryOffer {
 
     public void setBookPickedAt(LocalDateTime bookPickedAt) {
         this.bookPickedAt = bookPickedAt;
+    }
+
+    public DeliveryPickupUser getFirstPickupUser() {
+        return firstPickupUser;
+    }
+
+    public void setFirstPickupUser(DeliveryPickupUser firstPickupUser) {
+        this.firstPickupUser = firstPickupUser;
+    }
+
+    public Boolean getPickupACompleted() {
+        return pickupACompleted;
+    }
+
+    public void setPickupACompleted(Boolean pickupACompleted) {
+        this.pickupACompleted = pickupACompleted;
+    }
+
+    public Boolean getPickupBCompleted() {
+        return pickupBCompleted;
+    }
+
+    public void setPickupBCompleted(Boolean pickupBCompleted) {
+        this.pickupBCompleted = pickupBCompleted;
+    }
+
+    public boolean isPickupACompleted() {
+        return Boolean.TRUE.equals(pickupACompleted);
+    }
+
+    public boolean isPickupBCompleted() {
+        return Boolean.TRUE.equals(pickupBCompleted);
     }
 }

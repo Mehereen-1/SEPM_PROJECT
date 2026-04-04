@@ -7,12 +7,12 @@
         }
     }
 
-    function toRelativeTime(value) {
-        if (!value) {
+    function toRelativeTime(value, epochMillis) {
+        if (!value && !Number.isFinite(epochMillis)) {
             return "just now";
         }
 
-        const ts = new Date(value);
+        const ts = Number.isFinite(epochMillis) ? new Date(epochMillis) : new Date(value);
         if (Number.isNaN(ts.getTime())) {
             return "just now";
         }
@@ -44,7 +44,7 @@
             '<div class="notif-message"></div>' +
             '<div class="notif-meta">' +
             (item.read ? "" : '<span class="notif-dot"></span>') +
-            '<span>' + toRelativeTime(item.timestamp) + "</span>" +
+            '<span>' + toRelativeTime(item.timestamp, item.timestampEpochMillis) + "</span>" +
             "</div>";
         button.querySelector(".notif-message").textContent = item.message;
         return button;
@@ -199,7 +199,7 @@
                 row.innerHTML =
                     '<div class="notif-page-content">' +
                     '<p class="notif-message"></p>' +
-                    '<div class="notif-meta"><span>' + toRelativeTime(item.timestamp) + "</span></div>" +
+                    '<div class="notif-meta"><span>' + toRelativeTime(item.timestamp, item.timestampEpochMillis) + "</span></div>" +
                     "</div>" +
                     '<div class="notif-page-actions"></div>';
                 row.querySelector(".notif-message").textContent = item.message;

@@ -1,0 +1,72 @@
+flowchart TD
+    Start((Start))
+    A[User opens application]
+    B{Already authenticated?}
+    C[Open Auth page and submit login/registration]
+    D{Credentials valid and user active?}
+    E[Show authentication error]
+    F[Role-based redirect]
+    G{Reader flow?}
+
+    H[Browse offers and select target offer]
+    I[Select own active offer]
+    J[Submit exchange request]
+    K{Valid request?\nBoth offers ACTIVE, not duplicate, not own target}
+    L[Show request validation error]
+
+    M[Create ExchangeRequest as PENDING]
+    N[Target owner reviews request]
+    O{Target owner accepts?}
+
+    P[Set ExchangeRequest = REJECTED]
+    Q[Publish EXCHANGE_REJECTED notification]
+    EndRejected((End: Rejected))
+
+    R[Set ExchangeRequest = ACCEPTED]
+    S[Set both offers = RESERVED]
+    T{DeliveryOffer exists?}
+    U[Create DeliveryOffer as AVAILABLE]
+
+    V[Delivery partner accepts delivery task]
+    W[Set assignee, status = PENDING, acceptedAt]
+    X[Complete first pickup (pickupACompleted=true)]
+    Y{First pickup completed?}
+    Z[Complete second pickup (pickupBCompleted=true)]
+    AA{Both pickups completed?}
+    AB[Complete delivery (status = COMPLETED)]
+
+    AC[Persist lifecycle timestamps and route metrics]
+    AD[Publish delivery notifications]
+    AE[Refresh dashboards and notification center]
+    EndCompleted((End: Completed))
+
+    Start --> A --> B
+    B -- No --> C --> D
+    D -- No --> E --> C
+    D -- Yes --> F
+    B -- Yes --> F
+
+    F --> G
+    G -- No --> EndCompleted
+    G -- Yes --> H --> I --> J --> K
+
+    K -- No --> L --> H
+    K -- Yes --> M --> N --> O
+
+    O -- No --> P --> Q --> EndRejected
+
+    O -- Yes --> R --> S --> T
+    T -- No --> U --> V
+    T -- Yes --> V
+
+    V --> W --> X --> Y
+    Y -- No --> X
+    Y -- Yes --> Z --> AA
+    AA -- No --> Z
+    AA -- Yes --> AB
+
+    AB --> AC
+    AB --> AD
+    AC --> AE
+    AD --> AE
+    AE --> EndCompleted

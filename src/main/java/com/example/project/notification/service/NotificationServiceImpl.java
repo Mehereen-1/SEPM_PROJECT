@@ -1,6 +1,8 @@
 package com.example.project.notification.service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +24,8 @@ import com.example.project.security.SecurityUtil;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
+
+    private static final ZoneId NOTIFICATION_ZONE = ZoneId.of("Asia/Dhaka");
 
     private final NotificationSubject notificationSubject;
     private final NotificationRepository notificationRepository;
@@ -66,13 +70,28 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public void publishFirstPickupApproaching(DeliveryOffer deliveryOffer, Long actorUserId) {
+        publish(NotificationEventType.FIRST_PICKUP_APPROACHING, actorUserId, null, deliveryOffer, null, null);
+    }
+
+    @Override
     public void publishPickupStarted(DeliveryOffer deliveryOffer, Long actorUserId) {
         publish(NotificationEventType.PICKUP_STARTED, actorUserId, null, deliveryOffer, null, null);
     }
 
     @Override
+    public void publishSecondPickupApproaching(DeliveryOffer deliveryOffer, Long actorUserId) {
+        publish(NotificationEventType.SECOND_PICKUP_APPROACHING, actorUserId, null, deliveryOffer, null, null);
+    }
+
+    @Override
     public void publishBookPicked(DeliveryOffer deliveryOffer, Long actorUserId) {
         publish(NotificationEventType.BOOK_PICKED, actorUserId, null, deliveryOffer, null, null);
+    }
+
+    @Override
+    public void publishFinalDeliveryApproaching(DeliveryOffer deliveryOffer, Long actorUserId) {
+        publish(NotificationEventType.FINAL_DELIVERY_APPROACHING, actorUserId, null, deliveryOffer, null, null);
     }
 
     @Override
@@ -164,7 +183,7 @@ public class NotificationServiceImpl implements NotificationService {
             deliveryOffer,
             directRecipient,
             customMessage,
-            LocalDateTime.now()
+            LocalDateTime.now(NOTIFICATION_ZONE)
         );
         notificationSubject.publish(event);
     }
@@ -178,12 +197,19 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private NotificationView toView(Notification notification) {
+        OffsetDateTime timestamp = notification.getCreatedAt() != null
+            ? notification.getCreatedAt().atZone(NOTIFICATION_ZONE).toOffsetDateTime()
+            : null;
+        Long timestampEpochMillis = timestamp != null ? timestamp.toInstant().toEpochMilli() : null;
+
         return new NotificationView(
             notification.getId(),
             notification.getMessage(),
             notification.getType().name(),
             notification.isRead(),
-            notification.getCreatedAt()
+            timestamp,
+            timestampEpochMillis,
+            NOTIFICATION_ZONE.getId()
         );
     }
 

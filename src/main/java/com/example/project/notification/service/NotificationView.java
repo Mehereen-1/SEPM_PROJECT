@@ -1,12 +1,14 @@
 package com.example.project.notification.service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record NotificationView(
     Long id,
     String message,
     String type,
     boolean read,
-    LocalDateTime timestamp
+    OffsetDateTime timestamp,
+    Long timestampEpochMillis,
+    String timezone
 ) {
 }

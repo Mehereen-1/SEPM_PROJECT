@@ -25,6 +25,19 @@
         window.alert(message);
     }
 
+    function escapeHtml(value) {
+        return String(value || "").replace(/[&<>"']/g, function (char) {
+            var map = {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;"
+            };
+            return map[char] || char;
+        });
+    }
+
     function statusBadgeClass(status) {
         if (status === "AVAILABLE") {
             return "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-rose-50 text-rose-700";
@@ -35,15 +48,28 @@
         return "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-amber-100 text-amber-800";
     }
 
-    function lifecycleButtonHtml(status) {
+    function resolveParticipants(actionsNode) {
+        return {
+            firstPickupName: actionsNode ? (actionsNode.getAttribute("data-first-pickup-name") || "Reader A") : "Reader A",
+            secondPickupName: actionsNode ? (actionsNode.getAttribute("data-second-pickup-name") || "Reader B") : "Reader B",
+            finalDropoffName: actionsNode ? (actionsNode.getAttribute("data-final-dropoff-name") || "Reader A") : "Reader A"
+        };
+    }
+
+    function lifecycleButtonHtml(status, actionsNode) {
+        var participants = resolveParticipants(actionsNode);
+        var firstPickupName = escapeHtml(participants.firstPickupName);
+        var secondPickupName = escapeHtml(participants.secondPickupName);
+        var finalDropoffName = escapeHtml(participants.finalDropoffName);
+
         if (status === "ACCEPTED" || status === "PENDING") {
-            return '<button type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700" data-delivery-action="start-pickup"><span class="material-symbols-rounded text-base">play_circle</span>Start Pickup</button>';
+            return '<button type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700" data-delivery-action="start-pickup"><span class="material-symbols-rounded text-base">play_circle</span>Pick up from ' + firstPickupName + '</button>';
         }
         if (status === "PICKUP_STARTED") {
-            return '<button type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-amber-600" data-delivery-action="book-picked"><span class="material-symbols-rounded text-base">inventory_2</span>Book Picked</button>';
+            return '<button type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-amber-600" data-delivery-action="book-picked"><span class="material-symbols-rounded text-base">inventory_2</span>Deliver to ' + secondPickupName + ' and pick up from ' + secondPickupName + '</button>';
         }
         if (status === "BOOK_PICKED") {
-            return '<button type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800" data-delivery-action="mark-delivered"><span class="material-symbols-rounded text-base">task_alt</span>Mark Delivered</button>';
+            return '<button type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800" data-delivery-action="mark-delivered"><span class="material-symbols-rounded text-base">task_alt</span>Deliver to ' + finalDropoffName + '</button>';
         }
         if (status === "COMPLETED") {
             return '<button type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-100 px-4 py-3 text-sm font-semibold text-emerald-800 cursor-not-allowed" disabled><span class="material-symbols-rounded text-base">verified</span>Completed</button>';
@@ -71,7 +97,7 @@
             actions.appendChild(form);
         }
 
-        var lifecycleHtml = lifecycleButtonHtml(status);
+        var lifecycleHtml = lifecycleButtonHtml(status, actions);
         if (lifecycleHtml) {
             actions.insertAdjacentHTML("beforeend", lifecycleHtml);
         }

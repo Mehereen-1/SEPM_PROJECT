@@ -1,0 +1,84 @@
+flowchart LR
+    Landing[Landing /]
+    PublicBooks[Books Browse /browse]
+    PublicOffers[Offers Browse /offers-browse]
+
+    Auth[Auth /auth]
+    SignUp[Sign Up]
+    SignIn[Sign In]
+    AuthValid{Credentials valid?}
+    RoleRoute{Resolved role}
+
+    ReaderDash[Reader Dashboard /reader/dashboard]
+    DeliveryDash[Delivery Dashboard /delivery/dashboard]
+    AdminDash[Admin Dashboard /admin/dashboard]
+
+    CreateOffer[Create Offer /offers-create]
+    MyOffers[My Offers /my-offers]
+    ExchangeCenter[Exchange Center /exchange-center]
+    Profile[Profile /profile]
+    Notifications[Notification Center /notification-center]
+
+    SendRequest[Send Exchange Request]
+    ReviewDecision{Received request action}
+    ExchangeAccepted[Exchange Accepted]
+    ExchangeRejected[Exchange Rejected]
+
+    DeliveryAvailable[Delivery Offers /delivery/offers]
+    DeliveryPending[Delivery Pending /delivery/pending]
+    DeliveryMap[Delivery Map /delivery/location/{id}]
+    Pickup1[Start First Pickup]
+    Pickup2[Complete Second Pickup]
+    DeliveryComplete[Complete Delivery]
+    DeliveryDone[Completed Deliveries /delivery/completed]
+
+    AdminBooks[Manage Books]
+    AdminUsers[Manage Users]
+    AdminOffers[Manage Offers]
+    AdminExchanges[Manage Exchange Requests]
+
+    AuthError[Stay on Auth with error]
+
+    Landing --> PublicBooks
+    Landing --> PublicOffers
+    Landing --> Auth
+
+    Auth --> SignUp
+    Auth --> SignIn
+    SignUp --> AuthValid
+    SignIn --> AuthValid
+
+    AuthValid -- No --> AuthError --> Auth
+    AuthValid -- Yes --> RoleRoute
+
+    RoleRoute -- Reader/Book Friend --> ReaderDash
+    RoleRoute -- Delivery Partner --> DeliveryDash
+    RoleRoute -- Admin --> AdminDash
+
+    ReaderDash --> PublicBooks
+    ReaderDash --> PublicOffers
+    ReaderDash --> CreateOffer
+    ReaderDash --> MyOffers
+    ReaderDash --> ExchangeCenter
+    ReaderDash --> Profile
+    ReaderDash --> Notifications
+
+    PublicBooks --> CreateOffer
+    CreateOffer --> MyOffers
+    MyOffers --> PublicOffers
+
+    PublicOffers --> SendRequest --> ExchangeCenter
+    ExchangeCenter --> ReviewDecision
+    ReviewDecision -- Accept --> ExchangeAccepted --> Notifications
+    ReviewDecision -- Reject --> ExchangeRejected --> Notifications
+
+    DeliveryDash --> DeliveryAvailable --> DeliveryPending
+    DeliveryPending --> DeliveryMap --> Pickup1 --> Pickup2 --> DeliveryComplete --> DeliveryDone
+    DeliveryDash --> Notifications
+    DeliveryDash --> Profile
+
+    AdminDash --> AdminBooks
+    AdminDash --> AdminUsers
+    AdminDash --> AdminOffers
+    AdminDash --> AdminExchanges
+    AdminExchanges --> Notifications

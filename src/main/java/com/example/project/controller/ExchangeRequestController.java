@@ -1,18 +1,10 @@
 package com.example.project.controller;
 
-import com.example.project.entity.DeliveryOffer;
-import com.example.project.entity.DeliveryOfferStatus;
-import com.example.project.entity.ExchangeRequest;
-import com.example.project.entity.ExchangeRequestStatus;
-import com.example.project.entity.Offer;
-import com.example.project.entity.OfferStatus;
-import com.example.project.entity.User;
-import com.example.project.notification.service.NotificationService;
-import com.example.project.repository.DeliveryOfferRepository;
-import com.example.project.repository.ExchangeRequestRepository;
-import com.example.project.repository.OfferRepository;
-import com.example.project.repository.UserRepository;
-import com.example.project.security.SecurityUtil;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +16,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import com.example.project.entity.DeliveryOffer;
+import com.example.project.entity.DeliveryOfferStatus;
+import com.example.project.entity.DeliveryPickupUser;
+import com.example.project.entity.ExchangeRequest;
+import com.example.project.entity.ExchangeRequestStatus;
+import com.example.project.entity.Offer;
+import com.example.project.entity.OfferStatus;
+import com.example.project.entity.User;
+import com.example.project.notification.service.NotificationService;
+import com.example.project.repository.DeliveryOfferRepository;
+import com.example.project.repository.ExchangeRequestRepository;
+import com.example.project.repository.OfferRepository;
+import com.example.project.repository.UserRepository;
+import com.example.project.security.SecurityUtil;
 
 @RestController
 @RequestMapping("/exchange-requests")
@@ -220,7 +222,11 @@ public class ExchangeRequestController {
         DeliveryOffer deliveryOffer = new DeliveryOffer();
         deliveryOffer.setExchangeRequest(exchangeRequest);
         deliveryOffer.setStatus(DeliveryOfferStatus.AVAILABLE);
-        deliveryOffer.setDeliveryFee(0.0d);
+        deliveryOffer.setDistanceKm(null);
+        deliveryOffer.setDeliveryFee(null);
+        deliveryOffer.setFirstPickupUser(DeliveryPickupUser.REQUESTER);
+        deliveryOffer.setPickupACompleted(false);
+        deliveryOffer.setPickupBCompleted(false);
         deliveryOffer.setCreatedAt(LocalDateTime.now());
         DeliveryOffer created = deliveryOfferRepository.save(deliveryOffer);
         notificationService.publishDeliveryCreated(created, null);

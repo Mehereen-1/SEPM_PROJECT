@@ -1,0 +1,92 @@
+flowchart LR
+    Visitor[Visitor]
+    Reader[Reader / Book Friend]
+    DeliveryPartner[Delivery Partner]
+    Admin[Admin]
+    ApiClient[API Client]
+
+    subgraph SystemBoundary[Book Exchange System]
+        UC_Register((Register Account))
+        UC_Login((Login))
+        UC_AuthApi((Authenticate via /api/auth/login))
+        UC_UpdateProfile((Update Profile and Location))
+
+        UC_BrowseBooks((Browse Books))
+        UC_BrowseOffers((Browse Offers))
+        UC_CreateOffer((Create Offer))
+        UC_UploadImages((Upload Offer Images))
+        UC_ManageOwnOffers((Manage Own Offers))
+
+        UC_SendExchange((Send Exchange Request))
+        UC_ReviewIncoming((Review Incoming Requests))
+        UC_AcceptExchange((Accept Exchange Request))
+        UC_RejectExchange((Reject Exchange Request))
+        UC_ReserveOffers((Reserve Both Offers))
+        UC_GenerateDelivery((Generate Delivery Offer))
+
+        UC_ViewDeliveryMap((View Delivery Map))
+        UC_AcceptDelivery((Accept Delivery Task))
+        UC_StartPickup((Start First Pickup))
+        UC_BookPicked((Complete Second Pickup))
+        UC_CompleteDelivery((Complete Delivery))
+
+        UC_ViewNotifications((View Notifications))
+        UC_MarkRead((Mark Notification(s) Read))
+        UC_PublishEvents((Publish Domain Notifications))
+
+        UC_AdminBooks((Manage Books))
+        UC_AdminUsers((Block Users))
+        UC_AdminOffers((Block/Delete Offers))
+        UC_AdminApproveExchange((Approve Exchange Request))
+    end
+
+    Visitor --> UC_Register
+    Visitor --> UC_Login
+    Visitor --> UC_BrowseBooks
+    Visitor --> UC_BrowseOffers
+
+    Reader --> UC_Login
+    Reader --> UC_UpdateProfile
+    Reader --> UC_BrowseBooks
+    Reader --> UC_BrowseOffers
+    Reader --> UC_CreateOffer
+    Reader --> UC_ManageOwnOffers
+    Reader --> UC_SendExchange
+    Reader --> UC_ReviewIncoming
+    Reader --> UC_ViewNotifications
+    Reader --> UC_MarkRead
+
+    DeliveryPartner --> UC_Login
+    DeliveryPartner --> UC_ViewDeliveryMap
+    DeliveryPartner --> UC_AcceptDelivery
+    DeliveryPartner --> UC_StartPickup
+    DeliveryPartner --> UC_BookPicked
+    DeliveryPartner --> UC_CompleteDelivery
+    DeliveryPartner --> UC_ViewNotifications
+    DeliveryPartner --> UC_MarkRead
+
+    Admin --> UC_Login
+    Admin --> UC_AdminBooks
+    Admin --> UC_AdminUsers
+    Admin --> UC_AdminOffers
+    Admin --> UC_AdminApproveExchange
+    Admin --> UC_ViewNotifications
+
+    ApiClient --> UC_AuthApi
+
+    UC_UploadImages -. "<<extend>>" .-> UC_CreateOffer
+    UC_MarkRead -. "<<extend>>" .-> UC_ViewNotifications
+
+    UC_AcceptExchange -. "<<include>>" .-> UC_ReserveOffers
+    UC_AcceptExchange -. "<<include>>" .-> UC_GenerateDelivery
+    UC_AcceptExchange -. "<<include>>" .-> UC_PublishEvents
+    UC_RejectExchange -. "<<include>>" .-> UC_PublishEvents
+    UC_SendExchange -. "<<include>>" .-> UC_PublishEvents
+
+    UC_AcceptDelivery -. "<<include>>" .-> UC_PublishEvents
+    UC_StartPickup -. "<<include>>" .-> UC_PublishEvents
+    UC_BookPicked -. "<<include>>" .-> UC_PublishEvents
+    UC_CompleteDelivery -. "<<include>>" .-> UC_PublishEvents
+
+    UC_AdminApproveExchange -. "<<include>>" .-> UC_GenerateDelivery
+    UC_AdminApproveExchange -. "<<include>>" .-> UC_PublishEvents

@@ -1,6 +1,6 @@
 package com.example.project.notification.controller;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +41,9 @@ class NotificationControllerIntegrationTest {
             "Delivery assigned to rider",
             "DELIVERY",
             false,
-            LocalDateTime.of(2026, 4, 1, 10, 0)
+            OffsetDateTime.parse("2026-04-01T10:00:00+06:00"),
+            1711944000000L,
+            "Asia/Dhaka"
         );
 
         when(notificationService.getCurrentUserNotifications(true, 5)).thenReturn(List.of(notificationView));
