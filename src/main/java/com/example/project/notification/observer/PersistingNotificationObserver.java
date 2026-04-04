@@ -1,6 +1,7 @@
 package com.example.project.notification.observer;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -17,6 +18,8 @@ import com.example.project.notification.strategy.NotificationStrategyRegistry;
 
 @Component
 public class PersistingNotificationObserver implements NotificationObserver {
+
+    private static final ZoneId NOTIFICATION_ZONE = ZoneId.of("Asia/Dhaka");
 
     private final NotificationStrategyRegistry strategyRegistry;
     private final NotificationRepository notificationRepository;
@@ -60,7 +63,7 @@ public class PersistingNotificationObserver implements NotificationObserver {
             notification.setType(draft.type());
             notification.setRead(false);
             notification.setEventKey(draft.eventKey());
-            notification.setCreatedAt(event.occurredAt() != null ? event.occurredAt() : LocalDateTime.now());
+            notification.setCreatedAt(event.occurredAt() != null ? event.occurredAt() : LocalDateTime.now(NOTIFICATION_ZONE));
             notificationRepository.save(notification);
         }
     }
