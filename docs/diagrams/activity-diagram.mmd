@@ -1,54 +1,72 @@
 flowchart TD
     Start((Start))
-    A[Reader browses offers and chooses target offer]
-    B[Reader selects one of own ACTIVE offers]
-    C[Submit POST /exchange-requests]
-    D{Valid request?\nnot own offer, both ACTIVE, non-duplicate}
+    A[User opens application]
+    B{Already authenticated?}
+    C[Open Auth page and submit login/registration]
+    D{Credentials valid and user active?}
+    E[Show authentication error]
+    F[Role-based redirect]
+    G{Reader flow?}
 
-    E[Return validation error to reader]
-    F[Persist ExchangeRequest as PENDING]
-    G[Publish EXCHANGE_REQUEST_SENT notification]
-    H[Target owner views received requests]
-    I{Target owner decision}
+    H[Browse offers and select target offer]
+    I[Select own active offer]
+    J[Submit exchange request]
+    K{Valid request?\nBoth offers ACTIVE, not duplicate, not own target}
+    L[Show request validation error]
 
-    J[Set request status to REJECTED]
-    K[Publish EXCHANGE_REJECTED notification]
-    EndRejected((End: Rejected Flow))
+    M[Create ExchangeRequest as PENDING]
+    N[Target owner reviews request]
+    O{Target owner accepts?}
 
-    L[Set request status to ACCEPTED]
-    M[Set requesterOffer and targetOffer to RESERVED]
-    N{DeliveryOffer exists for request?}
-    O[Create DeliveryOffer as AVAILABLE]
-    P[Publish DELIVERY_CREATED notification]
-    Q[Publish EXCHANGE_ACCEPTED notification]
+    P[Set ExchangeRequest = REJECTED]
+    Q[Publish EXCHANGE_REJECTED notification]
+    EndRejected((End: Rejected))
 
-    R[Delivery partner opens /delivery/offers]
-    S[Accept delivery task\nstatus -> PENDING, assignee set]
-    T[Publish DELIVERY_ASSIGNED notification]
+    R[Set ExchangeRequest = ACCEPTED]
+    S[Set both offers = RESERVED]
+    T{DeliveryOffer exists?}
+    U[Create DeliveryOffer as AVAILABLE]
 
-    U[Start first pickup\npickupACompleted = true]
-    V[Publish PICKUP_STARTED notification]
+    V[Delivery partner accepts delivery task]
+    W[Set assignee, status = PENDING, acceptedAt]
+    X[Complete first pickup (pickupACompleted=true)]
+    Y{First pickup completed?}
+    Z[Complete second pickup (pickupBCompleted=true)]
+    AA{Both pickups completed?}
+    AB[Complete delivery (status = COMPLETED)]
 
-    W[Complete second pickup\npickupBCompleted = true]
-    X[Publish BOOK_PICKED notification]
+    AC[Persist lifecycle timestamps and route metrics]
+    AD[Publish delivery notifications]
+    AE[Refresh dashboards and notification center]
+    EndCompleted((End: Completed))
 
-    Y{Both pickups completed?}
-    Z[Complete delivery\nstatus -> COMPLETED]
-    AA[Publish DELIVERY_COMPLETED notification]
-    AB[Users view notifications and mark as read]
-    EndCompleted((End: Completed Flow))
+    Start --> A --> B
+    B -- No --> C --> D
+    D -- No --> E --> C
+    D -- Yes --> F
+    B -- Yes --> F
 
-    Start --> A --> B --> C --> D
-    D -- No --> E --> EndRejected
-    D -- Yes --> F --> G --> H --> I
+    F --> G
+    G -- No --> EndCompleted
+    G -- Yes --> H --> I --> J --> K
 
-    I -- Reject --> J --> K --> EndRejected
-    I -- Accept --> L --> M --> N
+    K -- No --> L --> H
+    K -- Yes --> M --> N --> O
 
-    N -- No --> O --> P
-    N -- Yes --> Q
-    P --> Q
+    O -- No --> P --> Q --> EndRejected
 
-    Q --> R --> S --> T --> U --> V --> W --> X --> Y
-    Y -- No --> W
-    Y -- Yes --> Z --> AA --> AB --> EndCompleted
+    O -- Yes --> R --> S --> T
+    T -- No --> U --> V
+    T -- Yes --> V
+
+    V --> W --> X --> Y
+    Y -- No --> X
+    Y -- Yes --> Z --> AA
+    AA -- No --> Z
+    AA -- Yes --> AB
+
+    AB --> AC
+    AB --> AD
+    AC --> AE
+    AD --> AE
+    AE --> EndCompleted
