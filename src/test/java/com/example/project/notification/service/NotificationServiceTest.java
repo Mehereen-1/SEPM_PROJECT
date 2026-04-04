@@ -100,6 +100,24 @@ class NotificationServiceTest {
     }
 
     @Test
+    @DisplayName("Given delivery offer and actor when publishFirstPickupApproaching then stage event is published")
+    void givenDeliveryOfferAndActor_whenPublishFirstPickupApproaching_thenStageEventIsPublished() {
+        DeliveryOffer deliveryOffer = new DeliveryOffer();
+        deliveryOffer.setId(201L);
+
+        notificationService.publishFirstPickupApproaching(deliveryOffer, 18L);
+
+        ArgumentCaptor<NotificationEvent> eventCaptor = ArgumentCaptor.forClass(NotificationEvent.class);
+        verify(notificationSubject).publish(eventCaptor.capture());
+
+        NotificationEvent event = eventCaptor.getValue();
+        assertEquals(NotificationEventType.FIRST_PICKUP_APPROACHING, event.eventType());
+        assertEquals(18L, event.actorUserId());
+        assertEquals(deliveryOffer, event.deliveryOffer());
+        assertNotNull(event.occurredAt());
+    }
+
+    @Test
     @DisplayName("Given null recipient and empty message when publishSystemNotification then system event is published")
     void givenNullRecipientAndEmptyMessage_whenPublishSystemNotification_thenSystemEventIsPublished() {
         notificationService.publishSystemNotification(null, "", 25L);
@@ -137,6 +155,9 @@ class NotificationServiceTest {
         assertEquals("Unread delivery update", result.get(0).message());
         assertEquals("DELIVERY", result.get(0).type());
         assertFalse(result.get(0).read());
+        assertNotNull(result.get(0).timestamp());
+        assertNotNull(result.get(0).timestampEpochMillis());
+        assertEquals("Asia/Dhaka", result.get(0).timezone());
         verify(notificationRepository).findByRecipient_IdAndIsReadFalseOrderByCreatedAtDesc(
             eq(1L),
             argThat(pageable -> pageable.getPageNumber() == 0 && pageable.getPageSize() == 5)

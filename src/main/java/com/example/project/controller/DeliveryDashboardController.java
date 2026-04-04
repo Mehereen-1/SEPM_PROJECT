@@ -152,6 +152,7 @@ public class DeliveryDashboardController {
             }
             deliveryOfferRepository.save(offer);
             safePublish(() -> notificationService.publishDeliveryAssigned(offer, currentUser.get().getId()), "publishDeliveryAssigned", offer.getId());
+            safePublish(() -> notificationService.publishFirstPickupApproaching(offer, currentUser.get().getId()), "publishFirstPickupApproaching", offer.getId());
 
             redirectAttributes.addFlashAttribute("deliveryMessage", "Delivery offer accepted successfully.");
             return "redirect:/delivery/pending";
@@ -197,6 +198,7 @@ public class DeliveryDashboardController {
         offer.setPickupACompleted(true);
         deliveryOfferRepository.save(offer);
         safePublish(() -> notificationService.publishPickupStarted(offer, currentUser.get().getId()), "publishPickupStarted", offer.getId());
+        safePublish(() -> notificationService.publishSecondPickupApproaching(offer, currentUser.get().getId()), "publishSecondPickupApproaching", offer.getId());
 
         PickupParticipants participants = resolvePickupParticipants(offer);
 
@@ -242,6 +244,7 @@ public class DeliveryDashboardController {
         offer.setPickupBCompleted(true);
         deliveryOfferRepository.save(offer);
         safePublish(() -> notificationService.publishBookPicked(offer, currentUser.get().getId()), "publishBookPicked", offer.getId());
+        safePublish(() -> notificationService.publishFinalDeliveryApproaching(offer, currentUser.get().getId()), "publishFinalDeliveryApproaching", offer.getId());
 
         PickupParticipants participants = resolvePickupParticipants(offer);
 
