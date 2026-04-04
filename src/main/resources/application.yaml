@@ -1,25 +1,29 @@
 spring:
   application:
     name: project
+  docker:
+    compose:
+      enabled: false
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/se_project_db}
-    username: ${DB_USER:se_project_user}
-    password: ${DB_PASSWORD:securepass}
+    url: ${DB_URL:${DATABASE_URL:}}
+    username: ${DB_USER:${PGUSER:}}
+    password: ${DB_PASSWORD:${PGPASSWORD:}}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: false
+      ddl-auto: ${DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   thymeleaf:
-    cache: false
+    cache: ${THYMELEAF_CACHE:true}
 
 server:
-  port: ${APP_PORT:8080}
+  address: ${SERVER_ADDRESS:0.0.0.0}
+  port: ${PORT:8080}
 
 admin:
   email: ${ADMIN_EMAIL:}
