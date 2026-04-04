@@ -1,4 +1,4 @@
-# Binimoy (Bibliophile)
+# Bookaroo
 
 A location-aware community platform for exchanging physical books with trusted request, delivery, and completion workflows.
 
@@ -28,14 +28,14 @@ This README is fully restructured and repository-aligned. It reflects the curren
 ## 1. Project Title and Tagline
 
 ### Project Title
-Binimoy (Bibliophile)
+Bookaroo
 
 ### Tagline
 A community-driven, role-aware platform that makes physical book exchange transparent, trackable, and operationally reliable.
 
 ## 2. Executive Summary
 
-Binimoy is a full-stack Spring Boot application for exchanging physical books within a local community. It supports three operational roles:
+Bookaroo is a full-stack Spring Boot application for exchanging physical books within a local community. It supports three operational roles:
 - Book friends (readers)
 - Delivery partners
 - Administrators
@@ -49,7 +49,7 @@ The platform covers the complete lifecycle:
 
 Why it matters:
 - Informal book-sharing channels usually stop at discovery and fail at fulfillment.
-- Binimoy adds accountability through explicit state transitions and role-based operations.
+- Bookaroo adds accountability through explicit state transitions and role-based operations.
 - The codebase demonstrates production-grade engineering patterns: layered architecture, modular domains, deduped event handling, and automated CI checks.
 
 ## 3. Product Overview
@@ -68,8 +68,8 @@ Common listing solutions provide catalog discovery but not operational closure. 
 - Delivery progress management
 - Notification infrastructure with read-state tracking
 
-### How Binimoy Solves It
-Binimoy integrates marketplace, exchange, delivery, and notifications in one coherent workflow:
+### How Bookaroo Solves It
+Bookaroo integrates marketplace, exchange, delivery, and notifications in one coherent workflow:
 1. Users sign up with role and location context.
 2. Readers create offers for catalog books.
 3. Exchange requests are initiated and resolved by offer owners.
@@ -114,7 +114,7 @@ Binimoy integrates marketplace, exchange, delivery, and notifications in one coh
 ## 5. System Architecture
 
 ### Architecture Style
-Binimoy is implemented as a modular layered monolith with clear package boundaries:
+Bookaroo is implemented as a modular layered monolith with clear package boundaries:
 - Presentation layer: Thymeleaf templates and page-specific JavaScript
 - API layer: Spring MVC controllers (REST plus page routing)
 - Domain layer: service logic and strategy/facade orchestration

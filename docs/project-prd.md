@@ -3,7 +3,7 @@
 
 # PRODUCT REQUIREMENTS DOCUMENT (PRD)
 
-# Binimoy – Book Exchange Platform
+# Bookaroo – Book Exchange Platform
 
 ---
 
@@ -13,11 +13,11 @@
 
 ## 1.1 Project Title
 
-**Binimoy – Book Exchange Platform**
+**Bookaroo – Book Exchange Platform**
 
 ## 1.2 Project Context
 
-"Binimoy" is a web-based platform designed to connect readers and allow them to exchange books within a community. The platform enables users to list books they own, discover books from other users, and request exchanges.
+"Bookaroo" is a web-based platform designed to connect readers and allow them to exchange books within a community. The platform enables users to list books they own, discover books from other users, and request exchanges.
 
 The system also includes a delivery mechanism for exchanging physical books between users and calculates delivery charges based on the geographic distance between participants.
 
@@ -608,7 +608,7 @@ Final project deliverables include:
 
 # 21. Conclusion
 
-**Binimoy – Book Exchange Platform** demonstrates the design and implementation of a full-stack web system that integrates modern software engineering practices including secure authentication, optimized database design, modular architecture, containerized deployment, and automated CI/CD workflows.
+**Bookaroo – Book Exchange Platform** demonstrates the design and implementation of a full-stack web system that integrates modern software engineering practices including secure authentication, optimized database design, modular architecture, containerized deployment, and automated CI/CD workflows.
 
 The system provides an efficient, secure, and scalable solution for community-based book sharing.
 
